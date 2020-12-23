@@ -1,40 +1,8 @@
 import org.apache.tools.ant.filters.ReplaceTokens
 
-buildscript {
-    repositories {
-        jcenter()
-    }
-
-    dependencies {
-        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.8.5'
-        classpath "org.jfrog.buildinfo:build-info-extractor-gradle:4.16.0"
-        classpath group: 'org.springframework.boot', name: 'spring-boot-gradle-plugin', version: "${spring_boot_version}"
-    }
-}
-
-apply plugin: 'war'
-apply plugin: 'org.springframework.boot'
-apply plugin: "com.jfrog.artifactory"
-apply plugin: 'com.jfrog.bintray'
-apply plugin: 'maven-publish'
-
-
-configurations {
-    provided.all*.exclude group: 'org.slf4j', module: 'slf4j-log4j12'
-    provided.all*.exclude group: 'log4j', module: 'log4j'
-    provided.all*.exclude group: 'org.slf4j', module: 'log4j-over-slf4j'
-    provided.all*.exclude group: 'org.apache.wicket', module: 'wicket'
-    provided.all*.exclude group: 'javax.servlet'
-}
-
-sourceSets {
-    main {
-        java {
-            srcDir 'src/main/java'
-        }
-        /* all .java files are added to war */
-        resources.srcDirs = ['src/main/java', 'src/main/resources']
-    }
+plugins {
+    id "org.springframework.boot" version "2.4.1"
+    id "io.spring.dependency-management" version "1.0.10.RELEASE"
 }
 
 processResources {
@@ -47,8 +15,7 @@ processResources {
 }
 
 repositories {
-    mavenCentral()
-    maven { url 'https://jitpack.io' }
+    jcenter()
 }
 
 dependencies {
@@ -69,25 +36,18 @@ dependencies {
             [group: 'de.adesso.wicked-charts', name: 'wicked-charts-wicket8', version: "${wickedcharts_version}"]
     )
 
-    implementation(
-            [group: 'org.springframework.boot', name: 'spring-boot-starter-security', version: "${spring_boot_version}"],
-            [group: 'org.springframework.boot', name: 'spring-boot-starter-web', version: "${spring_boot_version}"],
-            [group: 'org.springframework.boot', name: 'spring-boot-starter-logging', version: "${spring_boot_version}"],
-            [group: 'org.springframework.boot', name: 'spring-boot-starter-data-jpa', version: "${spring_boot_version}"],
-            [group: 'org.springframework.boot', name: 'spring-boot-starter-mail', version: "${spring_boot_version}"],
-            [group: 'org.springframework.boot', name: 'spring-boot-starter-validation', version: "${spring_boot_version}"],
-    )
-
-    implementation group: 'org.slf4j', name: 'slf4j-api', version: "${slf4j_version}"
-    implementation group: 'ch.qos.logback', name: 'logback-classic', version: "${logback_version}"
-    implementation group: 'ch.qos.logback', name: 'logback-core', version: "${logback_version}"
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-logging'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-mail'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    testImplementation "org.springframework.boot:spring-boot-starter-test"
+    testImplementation "org.springframework.security:spring-security-test"
 
     implementation group: 'org.reflections', name: 'reflections', version: "${reflections_version}"
     implementation group: 'org.apache.commons', name: 'commons-lang3', version: "${commons_lang_version}"
-    implementation group: 'commons-codec', name: 'commons-codec', version: "${commons_codec_version}"
 
-    implementation group: 'joda-time', name: 'joda-time', version: "${joda_time_version}"
-    providedCompile group: 'org.joda', name: 'joda-convert', version: "${joda_convert_version}"
     implementation group: 'org.joda', name: 'joda-money', version: "${joda_money_version}"
     implementation group: 'de.jollyday', name: 'jollyday', version: "${jollyday_version}"
 
@@ -105,31 +65,8 @@ dependencies {
             [group: 'org.dbunit', name: 'dbunit', version: "${dbunit_version}"],
     )
 
-    testImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-test', version: "${spring_boot_version}"
-    testImplementation group: 'org.springframework.security', name: 'spring-security-test', version: "${spring_security_test_version}"
-
-    testImplementation('org.junit.platform:junit-platform-launcher:1.0.3')
-    testImplementation('com.github.sbrannen:spring-test-junit5:1.0.3')
-    testImplementation group: 'org.assertj', name: 'assertj-core', version: '3.18.1'
-
-
     compileOnly group: 'org.projectlombok', name: 'lombok', version: "${lombok_version}"
     testCompileOnly group: 'org.projectlombok', name: 'lombok', version: "${lombok_version}"
     annotationProcessor group: 'org.projectlombok', name: 'lombok', version: "${lombok_version}"
     testAnnotationProcessor group: 'org.projectlombok', name: 'lombok', version: "${lombok_version}"
 }
-
-sourceSets {
-    generated {
-        java {
-            srcDirs = ['src/generated/java']
-        }
-    }
-}
-
-test {
-    systemProperties = [
-            'spring.flyway.enabled': 'false'
-    ]
-}
-
