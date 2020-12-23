@@ -2,13 +2,9 @@ allprojects {
     version = '1.1.4.BETA'
 }
 
-buildscript {
+allprojects {
     repositories {
-        mavenLocal()
-        jcenter()
-        maven {
-            url "https://plugins.gradle.org/m2/"
-        }
+        mavenCentral()
     }
 }
 
@@ -16,15 +12,6 @@ subprojects {
 
     apply plugin: 'java'
     apply plugin: 'jacoco'
-
-    repositories {
-        jcenter()
-        mavenLocal()
-        maven {
-            name "Apache Snapshots"
-            url "https://repository.apache.org/content/repositories/snapshots/"
-        }
-    }
 
     dependencies {
         testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: junit5_version
@@ -47,7 +34,6 @@ subprojects {
     }
 
     test {
-        // Enable JUnit 5 (Gradle 4.6+).
         useJUnitPlatform()
     }
 }
