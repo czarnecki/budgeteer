@@ -1,6 +1,5 @@
 package org.wickedsource.budgeteer.web.pages.dashboard.dailyratechart;
 
-import com.google.common.collect.Lists;
 import de.adesso.wickedcharts.chartjs.ChartConfiguration;
 import de.adesso.wickedcharts.chartjs.chartoptions.CallbackFunction;
 import de.adesso.wickedcharts.chartjs.chartoptions.ChartType;
@@ -19,7 +18,10 @@ import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Locale;
 
 public class AverageDailyRateChartConfiguration extends ChartConfiguration implements Serializable {
 

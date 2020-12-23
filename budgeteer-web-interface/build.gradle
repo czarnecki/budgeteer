@@ -36,6 +36,8 @@ dependencies {
             [group: 'de.adesso.wicked-charts', name: 'wicked-charts-wicket8', version: "${wickedcharts_version}"]
     )
 
+    implementation 'org.wicketstuff:wicketstuff-annotation:8.11.0'
+
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-logging'
@@ -45,7 +47,6 @@ dependencies {
     testImplementation "org.springframework.boot:spring-boot-starter-test"
     testImplementation "org.springframework.security:spring-security-test"
 
-    implementation group: 'org.reflections', name: 'reflections', version: "${reflections_version}"
     implementation group: 'org.apache.commons', name: 'commons-lang3', version: "${commons_lang_version}"
 
     implementation group: 'org.joda', name: 'joda-money', version: "${joda_money_version}"
