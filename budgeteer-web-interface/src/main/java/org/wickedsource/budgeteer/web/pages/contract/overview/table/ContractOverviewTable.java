@@ -1,5 +1,6 @@
 package org.wickedsource.budgeteer.web.pages.contract.overview.table;
 
+import org.apache.wicket.core.request.mapper.AbstractBookmarkableMapper;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.EnumLabel;
 import org.apache.wicket.markup.html.basic.Label;
@@ -27,6 +28,7 @@ import org.wickedsource.budgeteer.web.components.tax.TaxBudgetUnitMoneyModel;
 import org.wickedsource.budgeteer.web.components.tax.TaxLabelModel;
 import org.wickedsource.budgeteer.web.pages.contract.details.ContractDetailsPage;
 import org.wickedsource.budgeteer.web.pages.contract.edit.EditContractPage;
+import org.wickedsource.budgeteer.web.pages.contract.overview.ContractOverviewPage;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -63,7 +65,7 @@ public class ContractOverviewTable extends Panel {
                 if (BudgeteerSession.get().isTaxEnabled()) {
                     taxCoefficient = BigDecimal.ONE.add(item.getModelObject().getTaxRate().divide(BigDecimal.valueOf(100), 4, RoundingMode.HALF_DOWN));
                 }
-                BookmarkablePageLink<EditContractPage> link = new BookmarkablePageLink<EditContractPage>("editContract",
+                BookmarkablePageLink<EditContractPage> link = new BookmarkablePageLink<>("editContract",
                         ContractDetailsPage.class, EditContractPage.createParameters(contractId));
                 link.add(new Label("contractName", model(from(item.getModelObject()).getContractName())));
                 item.add(link);
@@ -82,8 +84,7 @@ public class ContractOverviewTable extends Panel {
                         BudgeteerSession.get().getSelectedBudgetUnit(), taxCoefficient.doubleValue()))));
                 item.add(new Label("budgetLeft", Model.of(MoneyUtil.toDouble(item.getModelObject().getBudgetLeft(),
                         BudgeteerSession.get().getSelectedBudgetUnit(), taxCoefficient.doubleValue()))));
-                item.add(new BookmarkablePageLink("editLink", EditContractPage.class,
-                        EditContractPage.createParameters(contractId)));
+                item.add(new BookmarkablePageLink<>("editLink", EditContractPage.class, EditContractPage.createParameters(contractId)));
             }
         });
 

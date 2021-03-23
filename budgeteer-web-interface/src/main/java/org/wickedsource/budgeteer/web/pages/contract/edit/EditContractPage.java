@@ -1,72 +1,47 @@
 package org.wickedsource.budgeteer.web.pages.contract.edit;
 
-import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.html.link.Link;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.apache.wicket.util.string.StringValue;
-import org.wickedsource.budgeteer.service.contract.ContractBaseData;
 import org.wickedsource.budgeteer.service.contract.ContractService;
+import org.wickedsource.budgeteer.web.BudgeteerSession;
 import org.wickedsource.budgeteer.web.Mount;
-import org.wickedsource.budgeteer.web.pages.base.dialogpage.DialogPageWithBacklink;
+import org.wickedsource.budgeteer.web.pages.base.dialogpage.DialogPage;
 import org.wickedsource.budgeteer.web.pages.contract.edit.form.EditContractForm;
 import org.wickedsource.budgeteer.web.pages.contract.overview.ContractOverviewPage;
 
-import static org.wicketstuff.lazymodel.LazyModel.from;
-import static org.wicketstuff.lazymodel.LazyModel.model;
-
 @Mount({"contracts/edit/#{id}"})
-public class EditContractPage extends DialogPageWithBacklink {
+public class EditContractPage extends DialogPage {
 
     @SpringBean
     private ContractService service;
 
-    /**
-     * This constructor is used when you click on a link or try to access the EditContractPage manually
-     * (e.g. when you type the path "/contracts/edit" in the search bar)
-     * @param parameters
-     */
-    public EditContractPage(PageParameters parameters){
-        super(parameters, ContractOverviewPage.class, new PageParameters());
-        if (getContractId() == 0) {
-            Form<ContractBaseData> form = new EditContractForm("form");
-            addComponents(form);
-            add(new Label("pageTitle", "Create Contract"));
-        } else {
-            ContractBaseData contractBaseData = service.getContractById(getContractId());
-            EditContractForm form = new EditContractForm("form", model(from(contractBaseData)));
-            addComponents(form);
-            add(new Label("pageTitle", "Edit Contract"));
-        }
-    }
-    /**
-     * Use this constructor to create a page with a form to create a new contract.
-     */
-    public EditContractPage(Class<? extends WebPage> backlinkPage, PageParameters backlinkParameters) {
-        super(backlinkPage, backlinkParameters);
-        Form<ContractBaseData> form = new EditContractForm("form");
-        addComponents(form);
-        add(new Label("pageTitle", "Create Contract"));
+    public EditContractPage(PageParameters parameters) {
+        super(parameters);
+        var title = getContractId() == 0 ? "Create Contract" : "Edit Contract";
+        var model = Model.of(getContractId() == 0
+                ? service.getEmptyContractModel(BudgeteerSession.get().getProjectId())
+                : service.getContractById(getContractId()));
+        add(new Label("pageTitle", Model.of(title)));
+        add(new EditContractForm("form", model) {
+            @Override
+            public void onCancel() {
+                onBackLinkClicked();
+            }
+        });
+        add(new Link<>("cancelButton1") {
+            @Override
+            public void onClick() {
+                onBackLinkClicked();
+            }
+        });
     }
 
-    /**
-     * Use this constructor to create a page with a form to edit an existing contract.
-     *
-     * @param parameters page parameters containing the id of the budget to edit.
-     */
-    public EditContractPage(PageParameters parameters, Class<? extends WebPage> backlinkPage, PageParameters backlinkParameters) {
-        super(parameters, backlinkPage, backlinkParameters);
-        ContractBaseData contractBaseData = service.getContractById(getContractId());
-        EditContractForm form = new EditContractForm("form", model(from(contractBaseData)));
-        addComponents(form);
-        add(new Label("pageTitle", "Edit Contract"));
-    }
-
-    private void addComponents(Form<ContractBaseData> form) {
-        add(createBacklink("cancelButton1"));
-        form.add(createBacklink("cancelButton2"));
-        add(form);
+    public EditContractPage() {
+        this(null);
     }
 
     private long getContractId() {
@@ -82,5 +57,9 @@ public class EditContractPage extends DialogPageWithBacklink {
         PageParameters parameters = new PageParameters();
         parameters.add("id", contractId);
         return parameters;
+    }
+
+    public void onBackLinkClicked() {
+        setResponsePage(ContractOverviewPage.class, new PageParameters());
     }
 }

@@ -1,18 +1,25 @@
 package org.wickedsource.budgeteer.web.pages.contract.edit.form;
 
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxButton;
-import org.apache.wicket.injection.Injector;
+import org.apache.wicket.extensions.markup.html.form.DateTextField;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.*;
+import org.apache.wicket.markup.html.form.DropDownChoice;
+import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
+import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.html.form.TextField;
+import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
+import org.apache.wicket.markup.html.panel.GenericPanel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.apache.wicket.validation.validator.RangeValidator;
+import org.joda.money.Money;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.wickedsource.budgeteer.persistence.contract.ContractEntity;
 import org.wickedsource.budgeteer.service.DateUtil;
@@ -21,132 +28,144 @@ import org.wickedsource.budgeteer.service.contract.ContractService;
 import org.wickedsource.budgeteer.service.contract.DynamicAttributeField;
 import org.wickedsource.budgeteer.web.BudgeteerSession;
 import org.wickedsource.budgeteer.web.components.customFeedback.CustomFeedbackPanel;
-import org.wickedsource.budgeteer.web.components.daterange.DateInputField;
 import org.wickedsource.budgeteer.web.components.fileUpload.CustomFileUpload;
-import org.wickedsource.budgeteer.web.components.money.MoneyTextField;
+import org.wickedsource.budgeteer.web.pages.contract.overview.ContractOverviewPage;
 
 import java.math.BigDecimal;
 import java.util.Arrays;
+import java.util.Objects;
 
-import static org.wicketstuff.lazymodel.LazyModel.from;
-import static org.wicketstuff.lazymodel.LazyModel.model;
+import static org.apache.wicket.model.LambdaModel.of;
+import static org.wicketstuff.lambda.components.ComponentFactory.ajaxButton;
 
-public class EditContractForm extends Form<ContractBaseData> {
+public class EditContractForm extends GenericPanel<ContractBaseData> {
 
     @SpringBean
     private ContractService service;
 
-    private WebMarkupContainer table;
+    private boolean createMode;
+    private String newAttributeName;
 
-    private String submitButtonTextKey;
-
-    private TextField<String> newAttributeField;
-    private CustomFeedbackPanel feedbackPanel;
-
-    public EditContractForm(String id){
-        this(id, null, "button.save.createmode");
-    }
+    private final Component table;
+    private final Component feedbackPanel;
 
     public EditContractForm(String id, IModel<ContractBaseData> model) {
-        this(id, model, "button.save.editmode");
-    }
-
-    private EditContractForm(String id, IModel<ContractBaseData> model, String submitButtonTextKey) {
         super(id);
-        if (model != null) {
-            super.setDefaultModel(model);
-        } else {
-            super.setDefaultModel(Model.of(service.getEmptyContractModel(BudgeteerSession.get().getProjectId())));
-        }
-        Injector.get().inject(this);
-        this.submitButtonTextKey = submitButtonTextKey;
-        addComponents();
+        super.setDefaultModel(Objects.requireNonNullElseGet(model, () -> Model.of(service.getEmptyContractModel(BudgeteerSession.get().getProjectId()))));
+        this.createMode = model == null;
+
+        var form = new Form<>("form", model);
+        feedbackPanel = createFeedbackPanel();
+        form.add(feedbackPanel);
+        form.add(createContractNameField());
+        form.add(createInternalNumberField());
+        form.add(createBudgetField());
+        form.add(createTaxRateField());
+        form.add(createStartDateField());
+        form.add(createContractTypeDropDown());
+        form.add(createCustomFileUpload());
+        table = createAdditionalAttributeInfo();
+        form.add(table);
+        form.add(createNewAttributeInput());
+        form.add(createCancelButton());
+        form.add(createSubmitButton());
+        add(form);
     }
 
-    private void addComponents() {
-        feedbackPanel = new CustomFeedbackPanel("feedback");
-        feedbackPanel.setOutputMarkupId(true);
-        add(feedbackPanel);
+    private Component createFeedbackPanel() {
+        return new CustomFeedbackPanel("feedback")
+                .setOutputMarkupId(true);
+    }
 
-        TextField<String> nameTextfield = new TextField<>("contractName", model(from(getModelObject()).getContractName()));
-        nameTextfield.setRequired(true);
-        add(nameTextfield);
+    private Component createContractNameField() {
+        return new TextField<>("contractName", of(getModel(), ContractBaseData::getContractName, ContractBaseData::setContractName))
+                .setRequired(true);
+    }
 
-        TextField<String> internalNumberTextfield = new TextField<>("internalNumber", model(from(getModelObject()).getInternalNumber()));
-        internalNumberTextfield.setRequired(true);
-        add(internalNumberTextfield);
+    private Component createInternalNumberField() {
+        return new TextField<>("internalNumber", of(getModel(), ContractBaseData::getInternalNumber, ContractBaseData::setInternalNumber))
+                .setRequired(true);
+    }
 
-        MoneyTextField budgetTextfield = new MoneyTextField("budget", model(from(getModelObject()).getBudget()));
-        budgetTextfield.setRequired(true);
-        add(budgetTextfield);
-        
-        TextField<BigDecimal> taxrateTextfield = new TextField<>("taxrate", model(from(getModelObject()).getTaxRate()));
-        taxrateTextfield.setRequired(true);
-        taxrateTextfield.add(RangeValidator.minimum(BigDecimal.ZERO));
-        add(taxrateTextfield);
+    private Component createBudgetField() {
+        return new TextField<>("budget", of(getModel(), ContractBaseData::getBudget, ContractBaseData::setBudget), Money.class)
+                .setRequired(true);
+    }
 
-        if(getModelObject().getStartDate() == null){
-            getModelObject().setStartDate(DateUtil.getBeginOfYear());
-        }
-        DateInputField startDateInputField = new DateInputField("startDate", model(from(getModelObject()).getStartDate()), DateInputField.DROP_LOCATION.UP);
-        startDateInputField.setRequired(true);
-        add(startDateInputField);
+    private Component createTaxRateField() {
+        return new TextField<>("taxrate", of(getModel(), ContractBaseData::getTaxRate, ContractBaseData::setTaxRate), BigDecimal.class)
+                .setRequired(true)
+                .add(RangeValidator.minimum(BigDecimal.ZERO));
+    }
 
-        add(new DropDownChoice<ContractEntity.ContractType>("type",
-                model(from(getModelObject()).getType()), Arrays.asList(ContractEntity.ContractType.values()),
-                new EnumChoiceRenderer<ContractEntity.ContractType>(this)));
+    private Component createStartDateField() {
+        return new DateTextField("startDate", of(getModel(), baseData -> Objects.requireNonNullElse(baseData.getStartDate(), DateUtil.getBeginOfYear()),
+                ContractBaseData::setStartDate))
+                .setRequired(true);
+    }
 
-        final CustomFileUpload fileUpload = new CustomFileUpload("fileUpload", model(from(getModelObject()).getFileModel()));
-        add(fileUpload);
+    private Component createContractTypeDropDown() {
+        return new DropDownChoice<>("type", of(getModel(), ContractBaseData::getType, ContractBaseData::setType),
+                Arrays.asList(ContractEntity.ContractType.values()), new EnumChoiceRenderer<>(this));
+    }
 
-        table = new WebMarkupContainer("attributeTable");
-        table.setOutputMarkupId(true);
-        table.setOutputMarkupPlaceholderTag(true);
-        table.add(new ListView<DynamicAttributeField>("contractAttributes", model(from(getModelObject()).getContractAttributes())) {
+    private Component createCustomFileUpload() {
+        return new CustomFileUpload("fileUpload", of(getModel(), ContractBaseData::getFileModel, ContractBaseData::setFileModel));
+    }
+
+    private Component createAdditionalAttributeInfo() {
+        var container = new WebMarkupContainer("attributeTable");
+        container.setOutputMarkupPlaceholderTag(true);
+        container.add(new ListView<>("contractAttributes", getModel().map(ContractBaseData::getContractAttributes)) {
             @Override
             protected void populateItem(ListItem<DynamicAttributeField> item) {
-                item.add(new Label("attributeTitle", item.getModelObject().getName()));
-                item.add(new TextField<String>("attributeValue", model(from(item.getModelObject()).getValue())));
+                item.add(new Label("attributeTitle", item.getModel().map(DynamicAttributeField::getName)));
+                item.add(new TextField<>("attributeValue", of(item.getModel(), DynamicAttributeField::getValue, DynamicAttributeField::setValue)));
             }
         });
-        add(table);
-        newAttributeField = new TextField<String>("nameOfNewAttribute", Model.of(" "));
-        newAttributeField.setOutputMarkupId(true);
-        add(newAttributeField);
-        Button addAttribute = new AjaxButton("addAttribute") {
+        return container;
+    }
+
+    private Component createNewAttributeInput() {
+        var container = new WebMarkupContainer("newAttributeInput");
+        var newAttributeField = new TextField<>("nameOfNewAttribute", of(() -> newAttributeName, val -> newAttributeName = val)).setOutputMarkupId(true);
+        var addButton = ajaxButton("addAttribute", (button, target) -> {
+            if (newAttributeName == null) {
+                error(getString("feedback.error.nameEmpty"));
+                target.add(feedbackPanel);
+                return;
+            }
+            getModel().map(ContractBaseData::getContractAttributes).getObject().add(new DynamicAttributeField(newAttributeName, ""));
+            target.add(table, feedbackPanel, newAttributeField);
+        }).setOutputMarkupId(true);
+
+        container.add(newAttributeField, addButton);
+        return container;
+    }
+
+    private Component createCancelButton() {
+        return new Link<>("cancel2") {
             @Override
-            protected void onSubmit(AjaxRequestTarget target) {
-                if(newAttributeField.getModelObject() != null) {
-                    ((ContractBaseData) getForm().getModelObject()).getContractAttributes().add(new DynamicAttributeField(newAttributeField.getModelObject(), ""));
-                    target.add(table, newAttributeField, feedbackPanel);
-                } else {
-                    this.error(getString("feedback.error.nameEmpty"));
-                    target.add(feedbackPanel);
-                }
+            public void onClick() {
+                onCancel();
             }
         };
-        addAttribute.setOutputMarkupId(true);
-        add(addAttribute);
-        add(new AjaxButton("save", new StringResourceModel(submitButtonTextKey)) {
+    }
+
+    private Component createSubmitButton() {
+        return new AjaxButton("save", new StringResourceModel(createMode ? "button.save.createmode" : "button.save.editmode")) {
             @Override
             protected void onSubmit(AjaxRequestTarget target) {
                 try {
-                    ((ContractBaseData) getForm().getModelObject()).getFileModel().setFile(fileUpload.getFile());
-                    ((ContractBaseData) getForm().getModelObject()).getFileModel().setFileName(fileUpload.getFileName());
-                    ((ContractBaseData) getForm().getModelObject()).setContractId(service.save((ContractBaseData) getForm().getModelObject()));
-                    if(submitButtonTextKey.equals("button.save.createmode")){
-                        submitButtonTextKey = "button.save.editmode";
-                        this.setDefaultModel(new StringResourceModel(submitButtonTextKey));
-                        target.add(this);
-                        this.success(getString("feedback.success.creation"));
-                    }else {
-                        this.success(getString("feedback.success"));
-                    }
+                    var contractBaseData = EditContractForm.this.getModelObject();
+                    contractBaseData.setContractId(service.save(contractBaseData));
+                    success(createMode ? getString("feedback.success.creation") : getString("feedback.success"));
+                    createMode = false;
                 } catch (DataIntegrityViolationException e) {
-                    this.error(getString("feedback.error.dataformat.taxrate"));
+                    error(getString("feedback.error.dataformat.taxrate"));
                 } catch (Exception e) {
                     e.printStackTrace();
-                    this.error(getString("feedback.error"));
+                    error(getString("feedback.error"));
                 }
                 target.add(feedbackPanel);
             }
@@ -155,6 +174,10 @@ public class EditContractForm extends Form<ContractBaseData> {
             protected void onError(AjaxRequestTarget target) {
                 target.add(feedbackPanel);
             }
-        }.setOutputMarkupId(true));
+        }.setOutputMarkupId(true);
+    }
+
+    public void onCancel() {
+        setResponsePage(ContractOverviewPage.class);
     }
 }

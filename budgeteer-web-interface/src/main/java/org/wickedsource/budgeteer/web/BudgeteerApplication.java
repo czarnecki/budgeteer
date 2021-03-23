@@ -1,6 +1,8 @@
 package org.wickedsource.budgeteer.web;
 
 import de.adesso.wickedcharts.wicket8.JavaScriptResourceRegistry;
+import org.apache.wicket.ConverterLocator;
+import org.apache.wicket.IConverterLocator;
 import org.apache.wicket.RuntimeConfigurationType;
 import org.apache.wicket.Session;
 import org.apache.wicket.markup.head.IHeaderResponse;
@@ -13,6 +15,7 @@ import org.apache.wicket.request.IExceptionMapper;
 import org.apache.wicket.request.Request;
 import org.apache.wicket.request.Response;
 import org.apache.wicket.spring.injection.annot.SpringComponentInjector;
+import org.joda.money.Money;
 import org.reflections.Reflections;
 import org.reflections.scanners.TypeAnnotationsScanner;
 import org.reflections.util.ClasspathHelper;
@@ -22,6 +25,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Component;
 import org.wickedsource.budgeteer.web.components.instantiation.BudgeteerRequiresProjectListener;
+import org.wickedsource.budgeteer.web.components.money.MoneyConverter;
 import org.wickedsource.budgeteer.web.components.security.BudgeteerAuthorizationStrategy;
 import org.wickedsource.budgeteer.web.components.security.BudgeteerUnauthorizedComponentInstantiationListener;
 import org.wickedsource.budgeteer.web.pages.dashboard.DashboardPage;
@@ -62,6 +66,15 @@ public class BudgeteerApplication extends WebApplication implements ApplicationC
         final BudgeteerRequiresProjectListener listener = new BudgeteerRequiresProjectListener();
         getComponentInstantiationListeners().add(listener);
         getComponentPreOnBeforeRenderListeners().add(listener);
+    }
+
+    @Override
+    protected IConverterLocator newConverterLocator() {
+        ConverterLocator defaultLocator = new ConverterLocator();
+
+        defaultLocator.set(Money.class, new MoneyConverter());
+
+        return defaultLocator;
     }
 
     @Override

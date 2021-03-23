@@ -42,10 +42,15 @@ public class ContractDetailsPage extends BasePage {
         add(new ContractDetailChart("comparisonChart", new ContractDetailChartModel(getParameterId(), numberOfMonths)));
         add(new DifferenceTable("differenceTable", new DifferenceTableModel(getParameterId(), contractModel.getObject().getStartDate())));
 
-        add(new Link("editLink") {
+        add(new Link<>("editLink") {
             @Override
             public void onClick() {
-                WebPage page = new EditContractPage(createParameters(getParameterId()), ContractDetailsPage.class, getPageParameters());
+                var page = new EditContractPage(createParameters(getParameterId())) {
+                    @Override
+                    public void onBackLinkClicked() {
+                        setResponsePage(ContractDetailsPage.class, ContractDetailsPage.this.getPageParameters());
+                    }
+                };
                 setResponsePage(page);
             }
         });

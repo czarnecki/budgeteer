@@ -3,7 +3,6 @@ package org.wickedsource.budgeteer.web.pages.contract.overview;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.markup.html.panel.Fragment;
@@ -36,10 +35,15 @@ public class ContractOverviewPage extends BasePage{
         table = new ContractOverviewTable("contractTable");
 
         add(table);
-        add(new Link("createContractLink") {
+        add(new Link<>("createContractLink") {
             @Override
             public void onClick() {
-                WebPage page = new EditContractPage(ContractOverviewPage.class, getPageParameters());
+                var page = new EditContractPage() {
+                    @Override
+                    public void onBackLinkClicked() {
+                        setResponsePage(ContractOverviewPage.class, ContractOverviewPage.this.getPageParameters());
+                    }
+                };
                 setResponsePage(page);
             }
         });
