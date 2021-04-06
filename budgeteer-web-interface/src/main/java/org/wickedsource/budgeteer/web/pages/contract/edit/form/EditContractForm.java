@@ -13,6 +13,7 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.apache.wicket.validation.validator.RangeValidator;
+import org.joda.money.Money;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.wickedsource.budgeteer.persistence.contract.ContractEntity;
 import org.wickedsource.budgeteer.service.DateUtil;
@@ -76,10 +77,10 @@ public class EditContractForm extends Form<ContractBaseData> {
         internalNumberTextfield.setRequired(true);
         add(internalNumberTextfield);
 
-        MoneyTextField budgetTextfield = new MoneyTextField("budget", model(from(getModelObject()).getBudget()));
+        FormComponent<Money> budgetTextfield = new MoneyTextField("budget", model(from(getModelObject()).getBudget()));
         budgetTextfield.setRequired(true);
         add(budgetTextfield);
-        
+
         TextField<BigDecimal> taxrateTextfield = new TextField<>("taxrate", model(from(getModelObject()).getTaxRate()));
         taxrateTextfield.setRequired(true);
         taxrateTextfield.add(RangeValidator.minimum(BigDecimal.ZERO));
@@ -131,6 +132,7 @@ public class EditContractForm extends Form<ContractBaseData> {
             @Override
             protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
                 try {
+                    System.out.println(form.getModelObject());
                     ((ContractBaseData) form.getModelObject()).getFileModel().setFile(fileUpload.getFile());
                     ((ContractBaseData) form.getModelObject()).getFileModel().setFileName(fileUpload.getFileName());
                     ((ContractBaseData) form.getModelObject()).setContractId(service.save((ContractBaseData) form.getModelObject()));

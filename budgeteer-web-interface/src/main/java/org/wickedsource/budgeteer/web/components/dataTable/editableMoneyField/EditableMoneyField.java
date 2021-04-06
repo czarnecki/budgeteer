@@ -6,6 +6,7 @@ import org.apache.wicket.ajax.markup.html.form.AjaxButton;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.panel.GenericPanel;
 import org.apache.wicket.model.IModel;
@@ -20,7 +21,7 @@ public abstract class EditableMoneyField extends GenericPanel<Money> {
     private Label label;
 
     private final WebMarkupContainer container;
-    private TextField<Money> rateField;
+    private FormComponent<Money> rateField;
     private Form<Money> form;
 
     public EditableMoneyField(final String id, final MarkupContainer table, final IModel<Money> model) {

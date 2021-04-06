@@ -7,6 +7,7 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Button;
 import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
@@ -57,7 +58,7 @@ public class EditPersonForm extends Form<PersonWithRates> {
 
     private TextField<String> nameTextField;
     private TextField<String> importKeyTextField;
-    private TextField<Money> importDefaultDailyRate;
+    private FormComponent<Money> importDefaultDailyRate;
 
     private WebMarkupContainer missingDailyRateTableContainer;
 
