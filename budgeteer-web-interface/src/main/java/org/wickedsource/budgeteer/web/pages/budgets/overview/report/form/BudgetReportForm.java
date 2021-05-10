@@ -1,5 +1,6 @@
 package org.wickedsource.budgeteer.web.pages.budgets.overview.report.form;
 
+import de.adesso.budgeteer.core.common.DateRange;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
@@ -11,7 +12,6 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.apache.wicket.util.file.Files;
 import org.apache.wicket.util.resource.FileResourceStream;
 import org.apache.wicket.util.resource.IResourceStream;
-import org.wickedsource.budgeteer.service.DateRange;
 import org.wickedsource.budgeteer.service.ReportType;
 import org.wickedsource.budgeteer.service.budget.report.BudgetReportService;
 import org.wickedsource.budgeteer.service.budget.report.ReportMetaInformation;

@@ -1,49 +1,15 @@
 import org.apache.tools.ant.filters.ReplaceTokens
 
-buildscript {
-    repositories {
-        jcenter()
-    }
-
-    dependencies {
-        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.8.5'
-        classpath "org.jfrog.buildinfo:build-info-extractor-gradle:4.16.0"
-        classpath group: 'org.springframework.boot', name: 'spring-boot-gradle-plugin', version: "${spring_boot_version}"
-    }
-}
-
 plugins {
-    id "io.freefair.lombok" version "5.3.0"
-}
-
-apply plugin: 'war'
-apply plugin: 'org.springframework.boot'
-apply plugin: "com.jfrog.artifactory"
-apply plugin: 'com.jfrog.bintray'
-apply plugin: 'maven-publish'
-
-
-configurations {
-    provided.all*.exclude group: 'org.slf4j', module: 'slf4j-log4j12'
-    provided.all*.exclude group: 'log4j', module: 'log4j'
-    provided.all*.exclude group: 'org.slf4j', module: 'log4j-over-slf4j'
-    provided.all*.exclude group: 'org.apache.wicket', module: 'wicket'
-    provided.all*.exclude group: 'javax.servlet'
-}
-
-sourceSets {
-    main {
-        java {
-            srcDir 'src/main/java'
-        }
-        /* all .java files are added to war */
-        resources.srcDirs = ['src/main/java', 'src/main/resources']
-    }
+    id "io.freefair.lombok" version "6.0.0-m2"
+    id 'org.springframework.boot' version '2.4.5'
+    id 'io.spring.dependency-management' version '1.0.11.RELEASE'
 }
 
 processResources {
     from('src/main/java') {
         exclude '**/*.xlsx'
+        duplicatesStrategy = DuplicatesStrategy.INCLUDE
         filter ReplaceTokens, tokens: [
                 "application.version": project.property("version")
         ]
@@ -52,6 +18,7 @@ processResources {
 
 repositories {
     mavenCentral()
+    jcenter()
     maven { url 'https://jitpack.io' }
 }
 
@@ -61,6 +28,7 @@ dependencies {
     implementation project(':budgeteer-ubw-importer')
     implementation project(':budgeteer-resourceplan-importer')
     implementation project(':budgeteer-report-exporter')
+    implementation project(':budgeteer-core')
 
     implementation group: 'org.apache.poi', name: 'poi-ooxml', version: "${poi_version}"
 
@@ -97,7 +65,8 @@ dependencies {
             [group: 'org.hsqldb', name: 'hsqldb', version: "${hsqldb_version}"],
             [group: 'mysql', name: 'mysql-connector-java', version: "${mysql_version}"],
             [group: 'com.oracle.database.jdbc', name: 'ojdbc10', version: "${oracle_database_version}"],
-            [group: 'com.oracle.database.nls', name: 'orai18n', version: "${oracle_database_version}"]
+            [group: 'com.oracle.database.nls', name: 'orai18n', version: "${oracle_database_version}"],
+            [group: 'org.postgresql', name: 'postgresql', version: "42.2.20"]
     )
 
     testImplementation(
@@ -107,25 +76,7 @@ dependencies {
             [group: 'org.dbunit', name: 'dbunit', version: "${dbunit_version}"],
     )
 
-    testImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-test', version: "${spring_boot_version}"
-    testImplementation group: 'org.springframework.security', name: 'spring-security-test', version: "${spring_security_test_version}"
-
     testImplementation('org.junit.platform:junit-platform-launcher:1.0.3')
     testImplementation('com.github.sbrannen:spring-test-junit5:1.0.3')
     testImplementation group: 'org.assertj', name: 'assertj-core', version: '3.18.1'
 }
-
-sourceSets {
-    generated {
-        java {
-            srcDirs = ['src/generated/java']
-        }
-    }
-}
-
-test {
-    systemProperties = [
-            'spring.flyway.enabled': 'false'
-    ]
-}
-

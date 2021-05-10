@@ -3,7 +3,7 @@
     <!-- empty Project -->
     <PROJECT id="1" name="project1"/>
 
-    <!-- project with project_contract_fields -->
+    <!-- projectWithDate with project_contract_fields -->
     <PROJECT id="2" name="project2"/>
 
     <PROJECT_CONTRACT_FIELD id="1" FIELD_NAME="test0" PROJECT_ID="2" />

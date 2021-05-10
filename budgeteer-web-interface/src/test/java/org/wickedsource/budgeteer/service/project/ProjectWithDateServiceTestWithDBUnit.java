@@ -26,7 +26,7 @@ import org.wickedsource.budgeteer.persistence.record.WorkRecordRepository;
 @ContextConfiguration(classes = {IntegrationTestConfiguration.class})
 @TestExecutionListeners({DbUnitTestExecutionListener.class, DirtiesContextTestExecutionListener.class, DependencyInjectionTestExecutionListener.class,
         TransactionalTestExecutionListener.class})
-class ProjectServiceTestWithDBUnit extends ServiceIntegrationTestTemplate {
+class ProjectWithDateServiceTestWithDBUnit extends ServiceIntegrationTestTemplate {
 
     @Autowired
     private ProjectService projectService;

@@ -1,14 +1,11 @@
 package org.wickedsource.budgeteer.service;
 
-import org.apache.wicket.markup.html.basic.Label;
+import de.adesso.budgeteer.core.common.DateRange;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.text.SimpleDateFormat;
 import java.util.*;
-
-import static org.wicketstuff.lazymodel.LazyModel.from;
-import static org.wicketstuff.lazymodel.LazyModel.model;
 
 @Component
 public class DateUtil {

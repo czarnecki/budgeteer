@@ -1,5 +1,6 @@
 package org.wickedsource.budgeteer.service.person;
 
+import de.adesso.budgeteer.core.common.DateRange;
 import org.hibernate.Hibernate;
 import org.joda.money.CurrencyUnit;
 import org.joda.money.Money;
@@ -13,7 +14,6 @@ import org.wickedsource.budgeteer.persistence.person.PersonRepository;
 import org.wickedsource.budgeteer.persistence.record.MissingDailyRateForBudgetBean;
 import org.wickedsource.budgeteer.persistence.record.WorkRecordEntity;
 import org.wickedsource.budgeteer.persistence.record.WorkRecordRepository;
-import org.wickedsource.budgeteer.service.DateRange;
 import org.wickedsource.budgeteer.service.DateUtil;
 import org.wickedsource.budgeteer.service.budget.BudgetBaseData;
 import org.wickedsource.budgeteer.web.planning.Person;

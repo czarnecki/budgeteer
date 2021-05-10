@@ -1,0 +1,169 @@
+@startuml
+
+hide circle
+
+skinparam linetype ortho
+
+entity User {
+    * user_id
+    --
+    * name
+    * password
+    * mail
+    * mail_verified
+}
+entity Project {
+    * project_id
+    --
+    * name
+    * project_start
+    * project_end
+}
+entity Contract {
+    * contract_id
+    --
+    * name
+    * tax_rate
+    contract_type
+    link
+    file_name
+    contract_file
+    budget
+    internal_number
+    start_date
+}
+entity Budget {
+    * budget_id
+    --
+    * name
+    * import_key
+    note
+    total
+    description
+    limit
+}
+entity Project_Contract_Field {
+    * project_contract_field_id
+    --
+    * field_name
+}
+entity Contract_Field {
+    * contract_field_id
+    --
+    * value
+}
+entity Daily_Rate {
+    * daily_rate_id
+    --
+    start_date
+    end_date
+    rate
+}
+entity Person {
+    * person_id
+    --
+    * name
+    * import_key
+    * default_daily_rate
+}
+entity Budget_Tag {
+    * budget_tag_id
+    --
+    * tag
+}
+entity Template {
+    * template_id
+    --
+    name
+    description
+    type
+    is_default
+    wbArr
+}
+entity Invoice {
+    * invoice_id
+    --
+    name
+    invoice_sum
+    internal_number
+    year
+    month
+    sent_date
+    paid_date
+    link
+    file
+    file_name
+}
+entity Invoice_Field {
+    * invoice_field_id
+    --
+    value
+}
+entity Contract_Invoice_Field {
+    * contract_invoice_field_id
+    --
+    * field_name
+}
+entity Import {
+    * import_id
+    --
+    * import_date
+    * start_date
+    * import_type
+    * number_of_imported_files
+}
+entity Verification_Token {
+    * verification_token_id
+    --
+    token
+    expiry_date
+}
+entity Forgot_Password_Token {
+    * forgot_password_token_id
+    --
+    token
+    expiry_date
+}
+entity Record {
+    * record_id
+    --
+    * date
+    * year
+    * month
+    * day
+    * week
+    * daily_rate
+}
+entity WorkRecord {
+    edited_manually
+}
+entity PlanRecord {
+}
+
+Record <|-- PlanRecord
+Record <|-- WorkRecord
+
+Budget ||--o{ Budget_Tag
+Budget ||--o{ Daily_Rate
+Budget |o--o{ Person
+Budget ||--o{ Record
+Contract ||--o{ Budget
+Contract ||--o{ Contract_Field
+Contract ||--o{ Contract_Invoice_Field
+Contract ||--o{ Invoice
+Contract_Invoice_Field ||--o{ Invoice_Field
+Import ||--o{ Record
+Invoice ||--o{ Invoice_Field
+Person ||--o{ Daily_Rate
+Person ||--o{ Record
+Project ||--o{ Contract
+Project ||--o{ Import
+Project ||--o{ Project_Contract_Field
+Project ||--o{ Template
+Project ||--o{ Budget
+Project_Contract_Field ||--o{ Contract_Field
+User ||--|| Forgot_Password_Token
+User }|--o{ Project
+User }o--|| Project
+User ||--|| Verification_Token
+@enduml

@@ -18,7 +18,7 @@ import org.wickedsource.budgeteer.web.pages.base.dialogpage.DialogPage;
 import org.wickedsource.budgeteer.web.pages.user.forgotpassword.ForgotPasswordPage;
 import org.wickedsource.budgeteer.web.pages.user.register.RegisterPage;
 import org.wickedsource.budgeteer.web.pages.user.resettoken.ResetTokenPage;
-import org.wickedsource.budgeteer.web.pages.user.selectproject.SelectProjectPage;
+import org.wickedsource.budgeteer.web.pages.project.select.SelectProjectPage;
 
 import static org.wicketstuff.lazymodel.LazyModel.from;
 import static org.wicketstuff.lazymodel.LazyModel.model;

@@ -1,34 +1,40 @@
-package org.wickedsource.budgeteer.web.pages.administration;
+package org.wickedsource.budgeteer.web.pages.project.administration;
 
+import de.adesso.budgeteer.core.common.DateRange;
+import de.adesso.budgeteer.core.project.port.in.DeleteProjectUseCase;
+import de.adesso.budgeteer.core.project.port.in.GetProjectWithDateUseCase;
+import de.adesso.budgeteer.core.project.port.in.UpdateProjectUseCase;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.html.form.RequiredTextField;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LambdaModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.wickedsource.budgeteer.service.DateRange;
-import org.wickedsource.budgeteer.service.DateUtil;
-import org.wickedsource.budgeteer.service.project.ProjectService;
 import org.wickedsource.budgeteer.service.user.User;
 import org.wickedsource.budgeteer.service.user.UserService;
 import org.wickedsource.budgeteer.web.BudgeteerSession;
-import org.wickedsource.budgeteer.web.BudgeteerSettings;
 import org.wickedsource.budgeteer.web.ClassAwareWrappingModel;
 import org.wickedsource.budgeteer.web.Mount;
 import org.wickedsource.budgeteer.web.components.customFeedback.CustomFeedbackPanel;
-import org.wickedsource.budgeteer.web.components.daterange.DateRangeInputField;
+import org.wickedsource.budgeteer.web.components.daterange.DateRangePickerBehavior;
 import org.wickedsource.budgeteer.web.pages.base.basepage.BasePage;
 import org.wickedsource.budgeteer.web.pages.base.basepage.breadcrumbs.BreadcrumbsModel;
 import org.wickedsource.budgeteer.web.pages.base.delete.DeleteDialog;
 import org.wickedsource.budgeteer.web.pages.dashboard.DashboardPage;
+import org.wickedsource.budgeteer.web.pages.project.model.WebProjectMapper;
+import org.wickedsource.budgeteer.web.pages.project.model.WebProject;
+import org.wickedsource.budgeteer.web.pages.project.model.WebProjectWithDate;
+import org.wickedsource.budgeteer.web.pages.project.select.SelectProjectPage;
 import org.wickedsource.budgeteer.web.pages.user.login.LoginPage;
-import org.wickedsource.budgeteer.web.pages.user.selectproject.SelectProjectPage;
 
+import java.util.HashMap;
 import java.util.List;
 
 import static org.wicketstuff.lazymodel.LazyModel.from;
@@ -41,46 +47,48 @@ public class ProjectAdministrationPage extends BasePage {
     private UserService userService;
 
     @SpringBean
-    private ProjectService projectService;
+    private GetProjectWithDateUseCase getProjectWithDateUseCase;
 
     @SpringBean
-    private BudgeteerSettings settings;
+    private UpdateProjectUseCase updateProjectUseCase;
+
+    @SpringBean
+    private DeleteProjectUseCase deleteProjectUseCase;
+
+    @SpringBean
+    private WebProjectMapper webProjectMapper;
 
     public ProjectAdministrationPage() {
         add(new CustomFeedbackPanel("feedback"));
-        add(createUserList("userList", () -> userService.getUsersInProject(BudgeteerSession.get().getProjectId())));
-        add(createDeleteProjectButton("deleteProjectButton"));
-        add(createAddUserForm("addUserForm"));
-        add(createEditProjectForm("projectChangeForm"));
+        add(createUserList(() -> userService.getUsersInProject(BudgeteerSession.get().getProjectId())));
+        add(createDeleteProjectButton());
+        add(createAddUserForm());
+        add(createEditProjectForm());
     }
 
-    private Form<Project> createEditProjectForm(String formId) {
-        Form<Project> form = new Form<Project>(formId, model(from(projectService.findProjectById(BudgeteerSession.get().getProjectId())))) {
+    private Form<WebProjectWithDate> createEditProjectForm() {
+        var form = new Form<>("projectChangeForm", Model.of(webProjectMapper.toWebProjectWithDate(getProjectWithDateUseCase.getProjectWithDate(BudgeteerSession.get().getProjectId())))) {
             @Override
             protected void onSubmit() {
-                super.onSubmit();
-                if(getModelObject().getName() == null){
-                    error(getString("error.no.name"));
-                }else {
-                    Project ent = getModelObject();
-                    projectService.save(ent);
-                    success(getString("project.saved"));
-                }
+                var project = getModelObject();
+                System.out.println(project.getDateRange());
+                updateProjectUseCase.updateProject(new UpdateProjectUseCase.UpdateProjectCommand(project.getId(), project.getName(), project.getDateRange()));
+                success(getString("project.saved"));
             }
         };
-        form.add(new TextField<String>("projectTitle", model(from(form.getModelObject()).getName())));
-        DateRange defaultDateRange = new DateRange(DateUtil.getBeginOfYear(), DateUtil.getEndOfYear());
-        form.add(new DateRangeInputField("projectStart", model(from(form.getModelObject()).getDateRange()), defaultDateRange, DateRangeInputField.DROP_LOCATION.DOWN));
+        form.add(new RequiredTextField<>("projectTitle", LambdaModel.of(form.getModel(), WebProject::getName, WebProject::setName)));
+        form.add(new TextField<>("projectStart", LambdaModel.of(form.getModel(), WebProjectWithDate::getDateRange, WebProjectWithDate::setDateRange), DateRange.class)
+                .add(new DateRangePickerBehavior(new HashMap<>())));
         return form;
     }
 
-    private ListView<User> createUserList(String id, IModel<List<User>> model) {
-        User thisUser = BudgeteerSession.get().getLoggedInUser();
-        return new ListView<User>(id, model) {
+    private ListView<User> createUserList(IModel<List<User>> model) {
+        var thisUser = BudgeteerSession.get().getLoggedInUser();
+        return new ListView<>("userList", model) {
             @Override
             protected void populateItem(final ListItem<User> item) {
                 item.add(new Label("username", model(from(item.getModel()).getName())));
-                Link deleteButton = new Link("deleteButton") {
+                var deleteButton = new Link<Void>("deleteButton") {
                     @Override
                     public void onClick() {
 
@@ -116,15 +124,15 @@ public class ProjectAdministrationPage extends BasePage {
         };
     }
 
-    private Form<User> createAddUserForm(String id) {
-        Form<User> form = new Form<User>(id, new Model<>(new User())) {
+    private Form<User> createAddUserForm() {
+        var form = new Form<>("addUserForm", new Model<>(new User())) {
             @Override
             protected void onSubmit() {
                 userService.addUserToProject(BudgeteerSession.get().getProjectId(), getModelObject().getId());
             }
         };
 
-        DropDownChoice<User> userChoice = new DropDownChoice<>("userChoice", form.getModel(),
+        var userChoice = new DropDownChoice<>("userChoice", form.getModel(),
                 () -> userService.getUsersNotInProject(BudgeteerSession.get().getProjectId()),
                 new UserChoiceRenderer());
         userChoice.setRequired(true);
@@ -132,14 +140,14 @@ public class ProjectAdministrationPage extends BasePage {
         return form;
     }
 
-    private Link createDeleteProjectButton(String id) {
-        return new Link(id) {
+    private Link<Void> createDeleteProjectButton() {
+        return new Link<>("deleteProjectButton") {
             @Override
             public void onClick() {
                 setResponsePage(new DeleteDialog() {
                     @Override
                     protected void onYes() {
-                        projectService.deleteProject(BudgeteerSession.get().getProjectId());
+                        deleteProjectUseCase.deleteProject(BudgeteerSession.get().getProjectId());
                         BudgeteerSession.get().setProjectSelected(false);
 
                         setResponsePage(new SelectProjectPage(LoginPage.class, new PageParameters()));

@@ -4,6 +4,7 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.tester.WicketTester;
 import org.junit.jupiter.api.Test;
 import org.wickedsource.budgeteer.web.AbstractWebTestTemplate;
+import org.wickedsource.budgeteer.web.pages.project.select.SelectProjectPage;
 import org.wickedsource.budgeteer.web.pages.user.login.LoginPage;
 
 public class SelectProjectPageTest extends AbstractWebTestTemplate {

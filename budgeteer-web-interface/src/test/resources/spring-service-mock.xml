@@ -20,7 +20,7 @@
 
     <mockito:mock id="userService" class="org.wickedsource.budgeteer.service.user.UserService"/>
 
-    <mockito:mock id="projectService" class="org.wickedsource.budgeteer.service.project.ProjectService"/>
+    <mockito:mock id="projectService" class="org.wickedsource.budgeteer.service.projectWithDate.ProjectService"/>
 
     <mockito:mock id="contractService" class="org.wickedsource.budgeteer.service.contract.ContractService"/>
 

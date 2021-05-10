@@ -1,4 +1,4 @@
-package org.wickedsource.budgeteer.service.project;
+package de.adesso.budgeteer.core.project;
 
 public class ProjectNameAlreadyInUseException extends Exception {
 }

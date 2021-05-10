@@ -1,7 +1,7 @@
 package org.wickedsource.budgeteer.service.budget.report;
 
+import de.adesso.budgeteer.core.common.DateRange;
 import lombok.Data;
-import org.wickedsource.budgeteer.service.DateRange;
 import org.wickedsource.budgeteer.service.template.Template;
 
 import java.io.Serializable;

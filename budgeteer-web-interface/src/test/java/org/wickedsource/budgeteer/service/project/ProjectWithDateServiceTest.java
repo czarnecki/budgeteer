@@ -14,7 +14,7 @@ import java.util.Optional;
 
 import static org.mockito.Mockito.*;
 
-class ProjectServiceTest extends ServiceTestTemplate {
+class ProjectWithDateServiceTest extends ServiceTestTemplate {
 
     @Autowired
     private ProjectService projectService;

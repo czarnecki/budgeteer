@@ -1,5 +1,6 @@
 package org.wickedsource.budgeteer.web.pages.person.edit.personrateform;
 
+import de.adesso.budgeteer.core.common.DateRange;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.event.IEvent;
 import org.apache.wicket.injection.Injector;
@@ -18,7 +19,6 @@ import org.joda.money.CurrencyUnit;
 import org.joda.money.Money;
 import org.wickedsource.budgeteer.MoneyUtil;
 import org.wickedsource.budgeteer.persistence.record.MissingDailyRateForBudgetBean;
-import org.wickedsource.budgeteer.service.DateRange;
 import org.wickedsource.budgeteer.service.DateUtil;
 import org.wickedsource.budgeteer.service.budget.BudgetBaseData;
 import org.wickedsource.budgeteer.service.budget.BudgetService;

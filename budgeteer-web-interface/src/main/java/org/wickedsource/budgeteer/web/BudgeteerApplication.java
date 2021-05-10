@@ -1,6 +1,9 @@
 package org.wickedsource.budgeteer.web;
 
+import de.adesso.budgeteer.core.common.DateRange;
 import de.adesso.wickedcharts.wicket8.JavaScriptResourceRegistry;
+import org.apache.wicket.ConverterLocator;
+import org.apache.wicket.IConverterLocator;
 import org.apache.wicket.RuntimeConfigurationType;
 import org.apache.wicket.Session;
 import org.apache.wicket.markup.head.IHeaderResponse;
@@ -21,6 +24,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Component;
+import org.wickedsource.budgeteer.web.components.daterange.DateRangeConverter;
 import org.wickedsource.budgeteer.web.components.instantiation.BudgeteerRequiresProjectListener;
 import org.wickedsource.budgeteer.web.components.security.BudgeteerAuthorizationStrategy;
 import org.wickedsource.budgeteer.web.components.security.BudgeteerUnauthorizedComponentInstantiationListener;
@@ -72,6 +76,15 @@ public class BudgeteerApplication extends WebApplication implements ApplicationC
         } else {
             return RuntimeConfigurationType.DEPLOYMENT;
         }
+    }
+
+    @Override
+    protected IConverterLocator newConverterLocator() {
+        var defaultLocator = new ConverterLocator();
+
+        defaultLocator.set(DateRange.class, new DateRangeConverter());
+
+        return defaultLocator;
     }
 
     /**

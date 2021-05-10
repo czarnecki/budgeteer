@@ -21,7 +21,6 @@ import org.wickedsource.budgeteer.service.record.AggregatedRecord;
 import org.wickedsource.budgeteer.service.record.RecordService;
 import org.wickedsource.budgeteer.service.user.User;
 import org.wickedsource.budgeteer.service.user.UserService;
-import org.wickedsource.budgeteer.web.pages.administration.Project;
 
 import java.util.ArrayList;
 import java.util.Date;

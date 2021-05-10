@@ -1,10 +1,10 @@
 package org.wickedsource.budgeteer.web.pages.person.edit.personrateform;
 
+import de.adesso.budgeteer.core.common.DateRange;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.joda.money.Money;
-import org.wickedsource.budgeteer.service.DateRange;
 import org.wickedsource.budgeteer.service.budget.BudgetBaseData;
 
 import java.io.Serializable;

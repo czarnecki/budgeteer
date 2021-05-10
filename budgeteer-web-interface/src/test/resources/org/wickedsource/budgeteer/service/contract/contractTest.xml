@@ -34,7 +34,7 @@
     <BUDGET id="200" name="Budget 2" total="100000" import_key="budget2" project_id="400" CONTRACT_ID="400"/>
 
 
-    <!-- Contract without any ContractFields but with a project containing ProjectContractFields -->
+    <!-- Contract without any ContractFields but with a projectWithDate containing ProjectContractFields -->
     <PROJECT id="500" name="project5"/>
 
     <CONTRACT id="500" CONTRACT_NAME="Test" PROJECT_ID="500" BUDGET="1" INTERNAL_NUMBER="Test" START_DATE="2015-01-01"

@@ -1,5 +1,6 @@
 package org.wickedsource.budgeteer.service.contract.report;
 
+import de.adesso.budgeteer.core.common.DateRange;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.wickedsource.budgeteer.MoneyUtil;
@@ -7,7 +8,6 @@ import org.wickedsource.budgeteer.persistence.contract.ContractEntity;
 import org.wickedsource.budgeteer.persistence.contract.ContractFieldEntity;
 import org.wickedsource.budgeteer.persistence.contract.ContractRepository;
 import org.wickedsource.budgeteer.persistence.contract.ContractStatisticBean;
-import org.wickedsource.budgeteer.service.DateRange;
 import org.wickedsource.budgeteer.service.contract.DynamicAttributeField;
 
 import java.time.LocalDate;

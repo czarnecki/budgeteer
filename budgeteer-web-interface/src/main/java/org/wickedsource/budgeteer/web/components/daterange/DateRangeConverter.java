@@ -1,8 +1,8 @@
 package org.wickedsource.budgeteer.web.components.daterange;
 
+import de.adesso.budgeteer.core.common.DateRange;
 import org.apache.wicket.util.convert.ConversionException;
 import org.apache.wicket.util.convert.IConverter;
-import org.wickedsource.budgeteer.service.DateRange;
 
 import java.text.DateFormat;
 import java.text.ParseException;

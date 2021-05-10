@@ -1,5 +1,6 @@
 package org.wickedsource.budgeteer.service.budget.report;
 
+import de.adesso.budgeteer.core.common.DateRange;
 import org.apache.poi.ss.formula.eval.NotImplementedException;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.xssf.usermodel.XSSFFormulaEvaluator;
@@ -13,7 +14,6 @@ import org.wickedsource.budgeteer.SheetTemplate.SheetTemplate;
 import org.wickedsource.budgeteer.SheetTemplate.SheetTemplateSerializable;
 import org.wickedsource.budgeteer.SheetTemplate.TemplateWriter;
 import org.wickedsource.budgeteer.persistence.record.WorkRecordRepository;
-import org.wickedsource.budgeteer.service.DateRange;
 import org.wickedsource.budgeteer.service.budget.BudgetDetailData;
 import org.wickedsource.budgeteer.service.budget.BudgetService;
 import org.wickedsource.budgeteer.service.budget.BudgetTagFilter;

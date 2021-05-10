@@ -15,7 +15,7 @@ import org.wickedsource.budgeteer.web.BudgeteerSession;
 import org.wickedsource.budgeteer.web.BudgeteerSettings;
 import org.wickedsource.budgeteer.web.components.instantiation.NeedsProject;
 import org.wickedsource.budgeteer.web.components.security.NeedsLogin;
-import org.wickedsource.budgeteer.web.pages.administration.ProjectAdministrationPage;
+import org.wickedsource.budgeteer.web.pages.project.administration.ProjectAdministrationPage;
 import org.wickedsource.budgeteer.web.pages.base.basepage.breadcrumbs.BreadcrumbsModel;
 import org.wickedsource.budgeteer.web.pages.base.basepage.breadcrumbs.BreadcrumbsPanel;
 import org.wickedsource.budgeteer.web.pages.base.basepage.budgetunitchoice.BudgetUnitChoice;
@@ -25,7 +25,7 @@ import org.wickedsource.budgeteer.web.pages.base.basepage.notifications.Notifica
 import org.wickedsource.budgeteer.web.pages.dashboard.DashboardPage;
 import org.wickedsource.budgeteer.web.pages.user.edit.EditUserPage;
 import org.wickedsource.budgeteer.web.pages.user.login.LoginPage;
-import org.wickedsource.budgeteer.web.pages.user.selectproject.SelectProjectPage;
+import org.wickedsource.budgeteer.web.pages.project.select.SelectProjectPage;
 
 @NeedsLogin
 @NeedsProject

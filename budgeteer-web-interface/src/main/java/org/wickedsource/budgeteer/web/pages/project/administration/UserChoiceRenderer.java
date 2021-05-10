@@ -1,4 +1,4 @@
-package org.wickedsource.budgeteer.web.pages.administration;
+package org.wickedsource.budgeteer.web.pages.project.administration;
 
 import org.wickedsource.budgeteer.service.user.User;
 import org.wickedsource.budgeteer.web.pages.base.AbstractChoiceRenderer;

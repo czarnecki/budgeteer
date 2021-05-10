@@ -1,9 +1,9 @@
 package org.wickedsource.budgeteer.service.record;
 
+import de.adesso.budgeteer.core.common.DateRange;
 import lombok.Getter;
 import lombok.Setter;
 import org.apache.wicket.model.Model;
-import org.wickedsource.budgeteer.service.DateRange;
 import org.wickedsource.budgeteer.service.budget.BudgetBaseData;
 import org.wickedsource.budgeteer.service.person.PersonBaseData;
 import org.wickedsource.budgeteer.web.components.burntable.filter.BurnTableSortColumn;

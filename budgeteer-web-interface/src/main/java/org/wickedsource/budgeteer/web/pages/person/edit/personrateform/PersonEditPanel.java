@@ -1,5 +1,6 @@
 package org.wickedsource.budgeteer.web.pages.person.edit.personrateform;
 
+import de.adesso.budgeteer.core.common.DateRange;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.form.select.IOptionRenderer;
@@ -17,7 +18,6 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.joda.money.CurrencyUnit;
 import org.joda.money.Money;
-import org.wickedsource.budgeteer.service.DateRange;
 import org.wickedsource.budgeteer.service.budget.BudgetBaseData;
 import org.wickedsource.budgeteer.service.budget.BudgetService;
 import org.wickedsource.budgeteer.service.person.PersonRate;

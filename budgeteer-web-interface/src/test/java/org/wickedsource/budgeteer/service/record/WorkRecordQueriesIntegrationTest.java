@@ -11,7 +11,6 @@ import org.wickedsource.budgeteer.IntegrationTestTemplate;
 import org.wickedsource.budgeteer.ListUtil;
 import org.wickedsource.budgeteer.persistence.record.WorkRecordEntity;
 import org.wickedsource.budgeteer.persistence.record.WorkRecordRepository;
-import org.wickedsource.budgeteer.service.DateRange;
 import org.wickedsource.budgeteer.service.budget.BudgetBaseData;
 import org.wickedsource.budgeteer.service.person.PersonBaseData;
 
