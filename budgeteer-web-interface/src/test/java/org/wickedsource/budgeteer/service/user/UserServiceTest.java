@@ -1,5 +1,7 @@
 package org.wickedsource.budgeteer.service.user;
 
+import de.adesso.budgeteer.core.user.*;
+import de.adesso.budgeteer.core.user.MailNotVerifiedException;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -214,8 +216,8 @@ class UserServiceTest extends ServiceTestTemplate{
     void testCreateVerificationTokenForUser() {
         UserEntity user = createUserEntity();
         String uuid = UUID.randomUUID().toString();
-        VerificationToken verificationToken = service.createVerificationTokenForUser(user, uuid);
-        verify(verificationTokenRepository, times(1)).save(verificationToken);
+        VerificationTokenEntity verificationTokenEntity = service.createVerificationTokenForUser(user, uuid);
+        verify(verificationTokenRepository, times(1)).save(verificationTokenEntity);
     }
 
     @Test
@@ -228,11 +230,11 @@ class UserServiceTest extends ServiceTestTemplate{
     void testValidateVerificationTokenExpired() {
         UserEntity user = createUserEntity();
         String uuid = UUID.randomUUID().toString();
-        VerificationToken verificationToken = new VerificationToken(user, uuid);
+        VerificationTokenEntity verificationTokenEntity = new VerificationTokenEntity(user, uuid);
         Date date = new Date();
-        date.setTime(verificationToken.getExpiryDate().getTime() - 90000000); // 25 hours
-        verificationToken.setExpiryDate(date);
-        when(verificationTokenRepository.findByToken(uuid)).thenReturn(verificationToken);
+        date.setTime(verificationTokenEntity.getExpiryDate().getTime() - 90000000); // 25 hours
+        verificationTokenEntity.setExpiryDate(date);
+        when(verificationTokenRepository.findByToken(uuid)).thenReturn(verificationTokenEntity);
         Assertions.assertEquals(-2, service.validateVerificationToken(uuid));
     }
 
@@ -240,8 +242,8 @@ class UserServiceTest extends ServiceTestTemplate{
     void testValidateVerificationTokenValid() {
         UserEntity user = createUserEntity();
         String uuid = UUID.randomUUID().toString();
-        VerificationToken verificationToken = new VerificationToken(user, uuid);
-        when(verificationTokenRepository.findByToken(uuid)).thenReturn(verificationToken);
+        VerificationTokenEntity verificationTokenEntity = new VerificationTokenEntity(user, uuid);
+        when(verificationTokenRepository.findByToken(uuid)).thenReturn(verificationTokenEntity);
         Assertions.assertEquals(0, service.validateVerificationToken(uuid));
     }
 
@@ -279,11 +281,11 @@ class UserServiceTest extends ServiceTestTemplate{
     void testCreateForgotPasswordTokenForUserWithOldToken() {
         UserEntity user = createUserEntity();
         String uuid = UUID.randomUUID().toString();
-        ForgotPasswordToken oldForgotPasswordToken = new ForgotPasswordToken(user, uuid);
-        when(forgotPasswordTokenRepository.findByUser(user)).thenReturn(oldForgotPasswordToken);
-        ForgotPasswordToken newForgotPasswordToken = service.createForgotPasswordTokenForUser(user, uuid);
-        verify(forgotPasswordTokenRepository, times(1)).delete(oldForgotPasswordToken);
-        verify(forgotPasswordTokenRepository, times(1)).save(newForgotPasswordToken);
+        ForgotPasswordTokenEntity oldForgotPasswordTokenEntity = new ForgotPasswordTokenEntity(user, uuid);
+        when(forgotPasswordTokenRepository.findByUser(user)).thenReturn(oldForgotPasswordTokenEntity);
+        ForgotPasswordTokenEntity newForgotPasswordTokenEntity = service.createForgotPasswordTokenForUser(user, uuid);
+        verify(forgotPasswordTokenRepository, times(1)).delete(oldForgotPasswordTokenEntity);
+        verify(forgotPasswordTokenRepository, times(1)).save(newForgotPasswordTokenEntity);
     }
 
     @Test
@@ -296,11 +298,11 @@ class UserServiceTest extends ServiceTestTemplate{
     void testValidateForgotPasswordTokenExpired() {
         UserEntity user = createUserEntity();
         String uuid = UUID.randomUUID().toString();
-        ForgotPasswordToken forgotPasswordToken = new ForgotPasswordToken(user, uuid);
+        ForgotPasswordTokenEntity forgotPasswordTokenEntity = new ForgotPasswordTokenEntity(user, uuid);
         Date date = new Date();
-        date.setTime(forgotPasswordToken.getExpiryDate().getTime() - 90000000); // 25 hours
-        forgotPasswordToken.setExpiryDate(date);
-        when(forgotPasswordTokenRepository.findByToken(uuid)).thenReturn(forgotPasswordToken);
+        date.setTime(forgotPasswordTokenEntity.getExpiryDate().getTime() - 90000000); // 25 hours
+        forgotPasswordTokenEntity.setExpiryDate(date);
+        when(forgotPasswordTokenRepository.findByToken(uuid)).thenReturn(forgotPasswordTokenEntity);
         Assertions.assertEquals(-2, service.validateForgotPasswordToken(uuid));
     }
 
@@ -308,8 +310,8 @@ class UserServiceTest extends ServiceTestTemplate{
     void testValidateForgotPasswordTokenValid() {
         UserEntity user = createUserEntity();
         String uuid = UUID.randomUUID().toString();
-        ForgotPasswordToken forgotPasswordToken = new ForgotPasswordToken(user, uuid);
-        when(forgotPasswordTokenRepository.findByToken(uuid)).thenReturn(forgotPasswordToken);
+        ForgotPasswordTokenEntity forgotPasswordTokenEntity = new ForgotPasswordTokenEntity(user, uuid);
+        when(forgotPasswordTokenRepository.findByToken(uuid)).thenReturn(forgotPasswordTokenEntity);
         Assertions.assertEquals(0, service.validateForgotPasswordToken(uuid));
     }
 
@@ -317,8 +319,8 @@ class UserServiceTest extends ServiceTestTemplate{
     void testGetUserByForgotPasswordTokenNotNull() {
         UserEntity user = createUserEntity();
         String uuid = UUID.randomUUID().toString();
-        ForgotPasswordToken forgotPasswordToken = new ForgotPasswordToken(user, uuid);
-        when(forgotPasswordTokenRepository.findByToken(uuid)).thenReturn(forgotPasswordToken);
+        ForgotPasswordTokenEntity forgotPasswordTokenEntity = new ForgotPasswordTokenEntity(user, uuid);
+        when(forgotPasswordTokenRepository.findByToken(uuid)).thenReturn(forgotPasswordTokenEntity);
         UserEntity userResult = service.getUserByForgotPasswordToken(uuid);
         Assertions.assertNotNull(userResult);
     }
@@ -334,10 +336,10 @@ class UserServiceTest extends ServiceTestTemplate{
     void testDeleteForgotPasswordToken() {
         UserEntity user = createUserEntity();
         String uuid = UUID.randomUUID().toString();
-        ForgotPasswordToken forgotPasswordToken = new ForgotPasswordToken(user, uuid);
-        when(forgotPasswordTokenRepository.findByToken(uuid)).thenReturn(forgotPasswordToken);
+        ForgotPasswordTokenEntity forgotPasswordTokenEntity = new ForgotPasswordTokenEntity(user, uuid);
+        when(forgotPasswordTokenRepository.findByToken(uuid)).thenReturn(forgotPasswordTokenEntity);
         service.deleteForgotPasswordToken(uuid);
-        verify(forgotPasswordTokenRepository, times(1)).delete(forgotPasswordToken);
+        verify(forgotPasswordTokenRepository, times(1)).delete(forgotPasswordTokenEntity);
     }
 
     private UserEntity createUserEntity() {

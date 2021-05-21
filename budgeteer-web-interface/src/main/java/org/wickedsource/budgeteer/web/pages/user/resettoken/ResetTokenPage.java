@@ -1,79 +1,49 @@
 package org.wickedsource.budgeteer.web.pages.user.resettoken;
 
-import org.apache.wicket.injection.Injector;
+import de.adesso.budgeteer.core.user.EmailAlreadyVerifiedException;
+import de.adesso.budgeteer.core.user.port.in.ResendVerificationTokenUseCase;
+import de.adesso.budgeteer.core.user.port.out.GetUserWithEmailPort;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Button;
-import org.apache.wicket.markup.html.form.EmailTextField;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.wickedsource.budgeteer.persistence.user.UserEntity;
-import org.wickedsource.budgeteer.service.user.*;
 import org.wickedsource.budgeteer.web.BudgeteerSession;
 import org.wickedsource.budgeteer.web.Mount;
 import org.wickedsource.budgeteer.web.components.customFeedback.CustomFeedbackPanel;
 import org.wickedsource.budgeteer.web.pages.base.dialogpage.DialogPage;
 import org.wickedsource.budgeteer.web.pages.dashboard.DashboardPage;
 
-import static org.wicketstuff.lazymodel.LazyModel.from;
-import static org.wicketstuff.lazymodel.LazyModel.model;
-
 @Mount("resettoken")
 public class ResetTokenPage extends DialogPage {
 
     @SpringBean
-    private UserService service;
+    private GetUserWithEmailPort getUserWithEmailPort;
+
+    @SpringBean
+    private ResendVerificationTokenUseCase resendVerificationTokenUseCase;
 
     public ResetTokenPage() {
-        addComponents(new PageParameters());
+        addComponents();
     }
 
-    public ResetTokenPage(PageParameters pageParameters) {
-        handleStatusCode(pageParameters);
-        addComponents(pageParameters);
-    }
-
-    private void addComponents(PageParameters backlinkParameters) {
-        Injector.get().inject(this);
-        ResetTokenData resetTokenData = new ResetTokenData();
-        try {
-            resetTokenData.setMail(service.getUserById(Long.parseLong(backlinkParameters.get("userId").toString())).getMail());
-        } catch (UserIdNotFoundException e) {
-            e.printStackTrace();
-        }
-        Form<ResetTokenData> form = new Form<ResetTokenData>("resetTokenForm", model(from(resetTokenData))) {
+    private void addComponents() {
+        IModel<String> model = () -> getUserWithEmailPort.getUserWithEmail(BudgeteerSession.get().getLoggedInUser().getId()).getEmail();
+        var form = new Form<>("resetTokenForm", model) {
             @Override
             protected void onSubmit() {
                 try {
-                    UserEntity userEntity = service.getUserByMail(getModelObject().getMail());
-
-                    if (!userEntity.getMailVerified()) {
-                        service.createNewVerificationTokenForUser(userEntity);
-                        success(getString("message.mailSent"));
-                    } else {
-                        error(getString("message.alreadyEnabled"));
-                    }
-                } catch (MailNotFoundException e) {
-                    error(getString("message.mailNotFound"));
+                    resendVerificationTokenUseCase.resendVerificationToken(BudgeteerSession.get().getLoggedInUser().getId());
+                } catch (EmailAlreadyVerifiedException e) {
+                    error(getString("message.alreadyEnabled"));
                 }
             }
         };
         add(form);
         form.add(new CustomFeedbackPanel("feedback"));
-        form.add(new EmailTextField("mail", model(from(form.getModel()).getMail())).setRequired(true));
+        form.add(new Label("mail", () -> getUserWithEmailPort.getUserWithEmail(BudgeteerSession.get().getLoggedInUser().getId()).getEmail()));
         form.add(new Button("submitButton"));
-        form.add(new BookmarkablePageLink("backlink", DashboardPage.class));
-    }
-
-    private void handleStatusCode(PageParameters pageParameters) {
-        if (!pageParameters.get("valid").isNull() && !pageParameters.get("valid").isEmpty()) {
-            int result = pageParameters.get("valid").toInt();
-
-            if (result == TokenStatus.INVALID.statusCode()) {
-                error(getString("message.tokenInvalid"));
-            } else if (result == TokenStatus.EXPIRED.statusCode()) {
-                error(getString("message.tokenExpired"));
-            }
-        }
+        form.add(new BookmarkablePageLink<>("backlink", DashboardPage.class));
     }
 }

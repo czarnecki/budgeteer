@@ -1,6 +1,7 @@
 package org.wickedsource.budgeteer.service.user;
 
 
+import de.adesso.budgeteer.core.user.PasswordHasher;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 

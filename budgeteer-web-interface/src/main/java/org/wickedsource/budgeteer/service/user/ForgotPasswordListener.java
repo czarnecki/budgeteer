@@ -31,7 +31,6 @@ public class ForgotPasswordListener implements ApplicationListener<OnForgotPassw
     public void onApplicationEvent(OnForgotPasswordEvent event) {
         UserEntity userEntity = event.getUserEntity();
         String token = UUID.randomUUID().toString();
-        userService.createForgotPasswordTokenForUser(userEntity, token);
 
         SimpleMailMessage mail = constructMailMessage(event, userEntity, token);
         javaMailSender.send(mail);

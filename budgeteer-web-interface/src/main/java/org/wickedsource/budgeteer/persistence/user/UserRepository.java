@@ -1,5 +1,6 @@
 package org.wickedsource.budgeteer.persistence.user;
 
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
@@ -25,5 +26,24 @@ public interface UserRepository extends CrudRepository<UserEntity, Long> {
 
     @Query("select u from UserEntity u join u.authorizedProjects p where p.id = :projectId")
     public List<UserEntity> findInProject(@Param("projectId") long projectId);
+
+    boolean existsByName(String name);
+
+    boolean existsByMail(String email);
+
+    @Query("select case when user.password = :password then true else false end from UserEntity user where user.id = :userId")
+    boolean passwordMatches(@Param("userId") long userId, @Param("password") String password);
+
+    @Query("select user.mailVerified from UserEntity user where user.mail = :email")
+    boolean emailVerified(@Param("email") String email);
+
+    @Modifying
+    @Query("update UserEntity user " +
+            "set user.password = :password " +
+            "where user.id = " +
+            "(select forgottenPassword.id " +
+            "from ForgotPasswordTokenEntity forgottenPassword " +
+            "where forgottenPassword.token = :token)")
+    void changePasswordWithForgottenPasswordToken(@Param("token") String token, @Param("password") String password);
 
 }

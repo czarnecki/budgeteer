@@ -31,7 +31,7 @@ public class NotificationLinkFactory implements Serializable {
         } else if (notification instanceof LimitReachedNotification) {
             return new BudgetDetailsPage(BudgetDetailsPage.createParameters(((LimitReachedNotification) notification).getBudgetId()));
         } else if (notification instanceof MailNotVerifiedNotification) {
-            return new ResetTokenPage(new PageParameters().add("userId", BudgeteerSession.get().getLoggedInUser().getId()));
+            return new ResetTokenPage();
         } else if (notification instanceof MissingMailNotification) {
             return new EditUserPage(backlinkPage, backlinkParameters.add("userId", BudgeteerSession.get().getLoggedInUser().getId()));
         } else {

@@ -1,12 +1,11 @@
 package org.wickedsource.budgeteer.web.pages.project.administration;
 
-import org.wickedsource.budgeteer.service.user.User;
 import org.wickedsource.budgeteer.web.pages.base.AbstractChoiceRenderer;
 
-public class UserChoiceRenderer extends AbstractChoiceRenderer<User> {
+public class UserChoiceRenderer extends AbstractChoiceRenderer<WebUser> {
 
     @Override
-    public Object getDisplayValue(User object) {
+    public Object getDisplayValue(WebUser object) {
         return object.getName();
     }
 }

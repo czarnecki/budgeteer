@@ -1,9 +1,9 @@
 package org.wickedsource.budgeteer.web.pages.project.administration;
 
 import de.adesso.budgeteer.core.common.DateRange;
-import de.adesso.budgeteer.core.project.port.in.DeleteProjectUseCase;
-import de.adesso.budgeteer.core.project.port.in.GetProjectWithDateUseCase;
-import de.adesso.budgeteer.core.project.port.in.UpdateProjectUseCase;
+import de.adesso.budgeteer.core.project.port.in.*;
+import de.adesso.budgeteer.core.user.port.in.GetUsersInProjectUseCase;
+import de.adesso.budgeteer.core.user.port.in.GetUsersNotInProjectUseCase;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.Form;
@@ -17,10 +17,7 @@ import org.apache.wicket.model.LambdaModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.wickedsource.budgeteer.service.user.User;
-import org.wickedsource.budgeteer.service.user.UserService;
 import org.wickedsource.budgeteer.web.BudgeteerSession;
-import org.wickedsource.budgeteer.web.ClassAwareWrappingModel;
 import org.wickedsource.budgeteer.web.Mount;
 import org.wickedsource.budgeteer.web.components.customFeedback.CustomFeedbackPanel;
 import org.wickedsource.budgeteer.web.components.daterange.DateRangePickerBehavior;
@@ -28,8 +25,8 @@ import org.wickedsource.budgeteer.web.pages.base.basepage.BasePage;
 import org.wickedsource.budgeteer.web.pages.base.basepage.breadcrumbs.BreadcrumbsModel;
 import org.wickedsource.budgeteer.web.pages.base.delete.DeleteDialog;
 import org.wickedsource.budgeteer.web.pages.dashboard.DashboardPage;
-import org.wickedsource.budgeteer.web.pages.project.model.WebProjectMapper;
 import org.wickedsource.budgeteer.web.pages.project.model.WebProject;
+import org.wickedsource.budgeteer.web.pages.project.model.WebProjectMapper;
 import org.wickedsource.budgeteer.web.pages.project.model.WebProjectWithDate;
 import org.wickedsource.budgeteer.web.pages.project.select.SelectProjectPage;
 import org.wickedsource.budgeteer.web.pages.user.login.LoginPage;
@@ -37,14 +34,20 @@ import org.wickedsource.budgeteer.web.pages.user.login.LoginPage;
 import java.util.HashMap;
 import java.util.List;
 
-import static org.wicketstuff.lazymodel.LazyModel.from;
-import static org.wicketstuff.lazymodel.LazyModel.model;
-
 @Mount("/administration")
 public class ProjectAdministrationPage extends BasePage {
 
     @SpringBean
-    private UserService userService;
+    private GetUsersInProjectUseCase getUsersInProjectUseCase;
+
+    @SpringBean
+    private GetUsersNotInProjectUseCase getUsersNotInProjectUseCase;
+
+    @SpringBean
+    private AddUserToProjectUseCase addUserToProjectUseCase;
+
+    @SpringBean
+    private RemoveUserFromProjectUseCase removeUserFromProjectUseCase;
 
     @SpringBean
     private GetProjectWithDateUseCase getProjectWithDateUseCase;
@@ -58,9 +61,12 @@ public class ProjectAdministrationPage extends BasePage {
     @SpringBean
     private WebProjectMapper webProjectMapper;
 
+    @SpringBean
+    private WebUserMapper webUserMapper;
+
     public ProjectAdministrationPage() {
         add(new CustomFeedbackPanel("feedback"));
-        add(createUserList(() -> userService.getUsersInProject(BudgeteerSession.get().getProjectId())));
+        add(createUserList(() -> webUserMapper.toWebUser(getUsersInProjectUseCase.getUsersInProject(BudgeteerSession.get().getProjectId()))));
         add(createDeleteProjectButton());
         add(createAddUserForm());
         add(createEditProjectForm());
@@ -71,7 +77,6 @@ public class ProjectAdministrationPage extends BasePage {
             @Override
             protected void onSubmit() {
                 var project = getModelObject();
-                System.out.println(project.getDateRange());
                 updateProjectUseCase.updateProject(new UpdateProjectUseCase.UpdateProjectCommand(project.getId(), project.getName(), project.getDateRange()));
                 success(getString("project.saved"));
             }
@@ -82,20 +87,19 @@ public class ProjectAdministrationPage extends BasePage {
         return form;
     }
 
-    private ListView<User> createUserList(IModel<List<User>> model) {
+    private ListView<WebUser> createUserList(IModel<List<WebUser>> model) {
         var thisUser = BudgeteerSession.get().getLoggedInUser();
         return new ListView<>("userList", model) {
             @Override
-            protected void populateItem(final ListItem<User> item) {
-                item.add(new Label("username", model(from(item.getModel()).getName())));
+            protected void populateItem(final ListItem<WebUser> item) {
+                item.add(new Label("username", item.getModel().map(WebUser::getName)));
                 var deleteButton = new Link<Void>("deleteButton") {
                     @Override
                     public void onClick() {
-
                         setResponsePage(new DeleteDialog() {
                             @Override
                             protected void onYes() {
-                                userService.removeUserFromProject(BudgeteerSession.get().getProjectId(), item.getModelObject().getId());
+                                removeUserFromProjectUseCase.removeUserFromProject(item.getModelObject().getId(), BudgeteerSession.get().getProjectId());
                                 setResponsePage(ProjectAdministrationPage.class, getPageParameters());
                             }
 
@@ -116,24 +120,21 @@ public class ProjectAdministrationPage extends BasePage {
                     deleteButton.setVisible(false);
                 item.add(deleteButton);
             }
-
-            @Override
-            protected ListItem<User> newItem(int index, IModel<User> itemModel) {
-                return super.newItem(index, new ClassAwareWrappingModel<>(itemModel, User.class));
-            }
         };
     }
 
-    private Form<User> createAddUserForm() {
-        var form = new Form<>("addUserForm", new Model<>(new User())) {
+    private Form<WebUser> createAddUserForm() {
+        var form = new Form<WebUser>("addUserForm", Model.of()) {
             @Override
             protected void onSubmit() {
-                userService.addUserToProject(BudgeteerSession.get().getProjectId(), getModelObject().getId());
+                if (getModel().isPresent().getObject()) {
+                    addUserToProjectUseCase.addUserToProject(getModelObject().getId(), BudgeteerSession.get().getProjectId());
+                }
             }
         };
 
         var userChoice = new DropDownChoice<>("userChoice", form.getModel(),
-                () -> userService.getUsersNotInProject(BudgeteerSession.get().getProjectId()),
+                () -> webUserMapper.toWebUser(getUsersNotInProjectUseCase.getUsersNotInProject(BudgeteerSession.get().getProjectId())),
                 new UserChoiceRenderer());
         userChoice.setRequired(true);
         form.add(userChoice);

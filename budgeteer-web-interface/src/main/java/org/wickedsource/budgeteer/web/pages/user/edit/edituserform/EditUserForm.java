@@ -1,31 +1,31 @@
 package org.wickedsource.budgeteer.web.pages.user.edit.edituserform;
 
-import org.apache.wicket.injection.Injector;
+import de.adesso.budgeteer.core.user.InvalidLoginCredentialsException;
+import de.adesso.budgeteer.core.user.MailAlreadyInUseException;
+import de.adesso.budgeteer.core.user.UsernameAlreadyInUseException;
+import de.adesso.budgeteer.core.user.port.in.UpdateUserUseCase;
 import org.apache.wicket.markup.html.form.*;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
+import org.apache.wicket.model.LambdaModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.wickedsource.budgeteer.service.user.*;
-import org.wickedsource.budgeteer.web.BudgeteerSession;
-import org.wickedsource.budgeteer.web.ClassAwareWrappingModel;
+import org.wickedsource.budgeteer.service.user.UserService;
 import org.wickedsource.budgeteer.web.components.customFeedback.CustomFeedbackPanel;
+import org.wickedsource.budgeteer.web.pages.project.administration.WebUser;
+import org.wickedsource.budgeteer.web.pages.project.administration.WebUserWithEmail;
 
 import static org.wicketstuff.lazymodel.LazyModel.from;
 import static org.wicketstuff.lazymodel.LazyModel.model;
 
-public class EditUserForm extends Form<EditUserData> {
+public class EditUserForm extends Form<WebUserWithEmail> {
 
     @SpringBean
     private UserService userService;
 
-    public EditUserForm(String id) {
-        super(id, new ClassAwareWrappingModel<>(Model.of(new EditUserData(BudgeteerSession.get().getLoggedInUser().getId())), EditUserData.class));
-        addComponents();
-    }
+    @SpringBean
+    private UpdateUserUseCase updateUserUseCase;
 
-    public EditUserForm(String id, IModel<EditUserData> model) {
+    public EditUserForm(String id, IModel<WebUserWithEmail> model) {
         super(id, model);
-        Injector.get().inject(this);
         addComponents();
     }
 
@@ -33,24 +33,20 @@ public class EditUserForm extends Form<EditUserData> {
         CustomFeedbackPanel feedbackPanel = new CustomFeedbackPanel("feedback");
         add(feedbackPanel);
 
-        RequiredTextField<String> usernameRequiredTextField = new RequiredTextField<>("username", model(from(getModelObject().getName())));
-        EmailTextField mailTextField;
-        if (getModelObject().getMail() == null)
-            mailTextField = new EmailTextField("mail");
-        else
-            mailTextField = new EmailTextField("mail", model(from(getModelObject().getMail())));
-        PasswordTextField currentPasswordTextField = new PasswordTextField("currentPassword");
-        PasswordTextField newPasswordTextField = new PasswordTextField("newPassword");
-        PasswordTextField newPasswordConfirmationTextField = new PasswordTextField("newPasswordConfirmation");
+        var usernameRequiredTextField = new RequiredTextField<>("username", LambdaModel.of(getModel(), WebUser::getName, WebUser::setName));
+        var emailTextField = new EmailTextField("mail", LambdaModel.of(getModel(), WebUserWithEmail::getEmail, WebUserWithEmail::setEmail));
+        var currentPasswordTextField = new PasswordTextField("currentPassword", LambdaModel.of(getModel(), WebUserWithEmail::getCurrentPassword, WebUserWithEmail::setCurrentPassword));
+        var newPasswordTextField = new PasswordTextField("newPassword", LambdaModel.of(getModel(), WebUserWithEmail::getNewPassword, WebUserWithEmail::setNewPassword));
+        var newPasswordConfirmationTextField = new PasswordTextField("newPasswordConfirmation", LambdaModel.of(getModel(), WebUserWithEmail::getNewPasswordConfirmation, WebUserWithEmail::setNewPasswordConfirmation));
 
         usernameRequiredTextField.setRequired(true);
-        mailTextField.setRequired(true);
+        emailTextField.setRequired(true);
         currentPasswordTextField.setRequired(false);
         newPasswordTextField.setRequired(false);
         newPasswordConfirmationTextField.setRequired(false);
 
         add(usernameRequiredTextField);
-        add(mailTextField);
+        add(emailTextField);
         add(currentPasswordTextField);
         add(newPasswordTextField);
         add(newPasswordConfirmationTextField);
@@ -65,14 +61,13 @@ public class EditUserForm extends Form<EditUserData> {
         Button submitButton = new Button("submitButton") {
             @Override
             public void onSubmit() {
-                boolean changePassword = false;
-
+                EditUserForm.this.onSubmit();
                 if (usernameRequiredTextField.getInput().isEmpty()) {
                     error(getString("form.username.Required"));
                     return;
                 }
 
-                if (mailTextField.getInput().isEmpty()) {
+                if (emailTextField.getInput().isEmpty()) {
                     error(getString("form.mail.Required"));
                     return;
                 }
@@ -93,41 +88,31 @@ public class EditUserForm extends Form<EditUserData> {
                         return;
                     }
 
-                    if (!userService.checkPassword(EditUserForm.this.getModelObject().getId(), currentPasswordTextField.getInput())) {
-                        error(getString("message.wrongPassword"));
-                        return;
-                    }
-
                     if (!newPasswordTextField.getInput().equals(newPasswordConfirmationTextField.getInput())) {
                         error(getString("message.wrongPasswordConfirmation"));
                         return;
                     }
-
-                    EditUserForm.this.getModelObject().setPassword(newPasswordTextField.getInput());
-                    changePassword = true;
                 }
 
-                try {
-                    EditUserForm.this.getModelObject().setName(usernameRequiredTextField.getInput());
-                    EditUserForm.this.getModelObject().setMail(mailTextField.getInput());
+                var userWithEmail = EditUserForm.this.getModelObject();
+                var command = new UpdateUserUseCase.UpdateUserCommand(userWithEmail.getId(),
+                        userWithEmail.getName(),
+                        userWithEmail.getEmail(),
+                        userWithEmail.getCurrentPassword(),
+                        userWithEmail.getNewPassword());
 
-                    // If the user has changed his mail address, this will be displayed to him.
-                    if (!userService.saveUser(EditUserForm.this.getModelObject(), changePassword)) {
-                        userService.createNewVerificationTokenForUser(userService.getUserById(EditUserForm.this.getModelObject().getId()));
-                        success(getString("message.successVerification"));
-                    } else {
-                        success(getString("message.success"));
-                    }
+                try {
+                    updateUserUseCase.updateUser(command);
                 } catch (UsernameAlreadyInUseException e) {
                     error(getString("message.duplicateUserName"));
                 } catch (MailAlreadyInUseException e) {
                     error(getString("message.duplicateMail"));
-                } catch (UserIdNotFoundException e) {
-                    error(getString("message.error"));
+                } catch (InvalidLoginCredentialsException e) {
+                    error(getString("message.wrongPassword"));
                 }
             }
         };
-        submitButton.setDefaultFormProcessing(false);
+        submitButton.setDefaultFormProcessing(true);
         add(submitButton);
     }
 }

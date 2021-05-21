@@ -1,5 +1,6 @@
 package org.wickedsource.budgeteer.web.pages.user.register;
 
+import de.adesso.budgeteer.core.user.port.in.RegisterUseCase;
 import org.apache.wicket.injection.Injector;
 import org.apache.wicket.markup.html.form.EmailTextField;
 import org.apache.wicket.markup.html.form.Form;
@@ -8,9 +9,9 @@ import org.apache.wicket.markup.html.form.RequiredTextField;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.wickedsource.budgeteer.service.user.MailAlreadyInUseException;
+import de.adesso.budgeteer.core.user.MailAlreadyInUseException;
 import org.wickedsource.budgeteer.service.user.UserService;
-import org.wickedsource.budgeteer.service.user.UsernameAlreadyInUseException;
+import de.adesso.budgeteer.core.user.UsernameAlreadyInUseException;
 import org.wickedsource.budgeteer.web.Mount;
 import org.wickedsource.budgeteer.web.components.customFeedback.CustomFeedbackPanel;
 import org.wickedsource.budgeteer.web.pages.base.dialogpage.DialogPage;
@@ -25,6 +26,9 @@ public class RegisterPage extends DialogPage {
     @SpringBean
     private UserService service;
 
+    @SpringBean
+    private RegisterUseCase registerUseCase;
+
     public RegisterPage() {
         Injector.get().inject(this);
         Form<RegistrationData> form = new Form<RegistrationData>("registrationForm", model(from(new RegistrationData()))) {
@@ -35,7 +39,7 @@ public class RegisterPage extends DialogPage {
                     return;
                 }
                 try {
-                    service.registerUser(getModelObject().getUsername(), getModelObject().getMail(), getModelObject().getPassword());
+                    registerUseCase.register(new RegisterUseCase.RegisterCommand(getModelObject().getUsername(), getModelObject().getMail(), getModelObject().getPassword()));
                     setResponsePage(LoginPage.class, new PageParameters().add("verificationsent", "true"));
                 } catch (UsernameAlreadyInUseException e) {
                     this.error(getString("message.duplicateUserName"));

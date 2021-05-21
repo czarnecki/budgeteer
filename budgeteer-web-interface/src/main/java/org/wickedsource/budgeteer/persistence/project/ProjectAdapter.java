@@ -3,6 +3,7 @@ package org.wickedsource.budgeteer.persistence.project;
 import de.adesso.budgeteer.core.common.DateRange;
 import de.adesso.budgeteer.core.project.domain.Project;
 import de.adesso.budgeteer.core.project.domain.ProjectWithDate;
+import de.adesso.budgeteer.core.project.port.in.RemoveUserFromProjectPort;
 import de.adesso.budgeteer.core.project.port.out.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -31,7 +32,9 @@ public class ProjectAdapter implements GetProjectPort,
         CreateProjectPort,
         GetProjectWithDatePort,
         UpdateProjectPort,
-        DeleteProjectPort {
+        DeleteProjectPort,
+        AddUserToProjectPort,
+        RemoveUserFromProjectPort {
 
     private final ProjectMapper projectMapper;
     private final ProjectRepository projectRepository;
@@ -124,5 +127,23 @@ public class ProjectAdapter implements GetProjectPort,
             }
         }
         projectRepository.deleteById(projectId);
+    }
+
+    @Override
+    @Transactional
+    public void addUserToProject(long userId, long projectId) {
+        ProjectEntity projectEntity = projectRepository.findById(projectId).orElseThrow();
+        UserEntity userEntity = userRepository.findById(userId).orElseThrow();
+        projectEntity.getAuthorizedUsers().add(userEntity);
+        projectRepository.save(projectEntity);
+    }
+
+    @Override
+    @Transactional
+    public void removeUserFromProject(long userId, long projectId) {
+        ProjectEntity projectEntity = projectRepository.findById(projectId).orElseThrow();
+        UserEntity userEntity = userRepository.findById(userId).orElseThrow();
+        projectEntity.getAuthorizedUsers().remove(userEntity);
+        projectRepository.save(projectEntity);
     }
 }

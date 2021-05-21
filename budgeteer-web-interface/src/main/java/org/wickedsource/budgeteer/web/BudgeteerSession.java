@@ -9,6 +9,7 @@ import org.springframework.security.web.context.HttpSessionSecurityContextReposi
 import org.wickedsource.budgeteer.service.budget.BudgetTagFilter;
 import org.wickedsource.budgeteer.service.security.BudgeteerAuthenticationToken;
 import org.wickedsource.budgeteer.service.user.User;
+import org.wickedsource.budgeteer.web.pages.project.administration.WebUser;
 import org.wickedsource.budgeteer.web.pages.templates.TemplateFilter;
 
 import javax.servlet.http.HttpServletRequest;
@@ -29,7 +30,7 @@ public class BudgeteerSession extends WebSession {
 
     private boolean taxEnabled;
 
-    private User loggedInUser;
+    private WebUser loggedInUser;
 
     private boolean projectSelected;
 
@@ -43,7 +44,7 @@ public class BudgeteerSession extends WebSession {
         this.httpSession = ((HttpServletRequest) request.getContainerRequest()).getSession();
     }
 
-    public User getLoggedInUser() {
+    public WebUser getLoggedInUser() {
         return loggedInUser;
     }
 
@@ -51,7 +52,7 @@ public class BudgeteerSession extends WebSession {
         return this.loggedInUser != null;
     }
 
-    public void login(User loggedInUser) {
+    public void login(WebUser loggedInUser) {
         this.loggedInUser = loggedInUser;
 
         this.setAuthInSecurityContext(new BudgeteerAuthenticationToken(loggedInUser.getName()));

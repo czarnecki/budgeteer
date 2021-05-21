@@ -5,7 +5,7 @@ import org.wickedsource.budgeteer.persistence.user.UserEntity;
 import org.wickedsource.budgeteer.service.AbstractMapper;
 
 @Component
-public class UserMapper extends AbstractMapper<UserEntity, User>{
+public class TempUserMapper extends AbstractMapper<UserEntity, User>{
 
     @Override
     public User map(UserEntity entity) {

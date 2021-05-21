@@ -1,4 +1,4 @@
-package org.wickedsource.budgeteer.service.user;
+package de.adesso.budgeteer.core.user;
 
 import org.apache.commons.codec.binary.Hex;
 import org.springframework.stereotype.Component;

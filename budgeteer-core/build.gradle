@@ -20,6 +20,8 @@ repositories {
 
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter'
+    implementation 'org.springframework.boot:spring-boot-starter-mail'
+    implementation 'commons-codec:commons-codec:1.15'
     implementation 'org.joda:joda-money:1.0.1'
 }
 
