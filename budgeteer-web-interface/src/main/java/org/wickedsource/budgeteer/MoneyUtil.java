@@ -6,7 +6,9 @@ import org.joda.money.Money;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.function.Function;
 
 public class MoneyUtil {
 
@@ -126,5 +128,9 @@ public class MoneyUtil {
         } else {
             return MoneyUtil.createMoneyFromCents(Math.round(cents));
         }
+    }
+
+    public static <T> Money sum(Collection<T> data, Function<? super T, Money> mapper, Money defaultValue) {
+        return data.stream().map(mapper).reduce(defaultValue, Money::plus);
     }
 }

@@ -1,5 +1,6 @@
 package org.wickedsource.budgeteer.web.pages.contract.overview.table;
 
+import de.adesso.budgeteer.core.contract.port.out.GetContractsInProjectPort;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.EnumLabel;
 import org.apache.wicket.markup.html.basic.Label;
@@ -13,11 +14,6 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.wickedsource.budgeteer.MoneyUtil;
-import org.wickedsource.budgeteer.persistence.contract.ContractEntity;
-import org.wickedsource.budgeteer.service.contract.ContractBaseData;
-import org.wickedsource.budgeteer.service.contract.ContractService;
-import org.wickedsource.budgeteer.service.contract.ContractTotalData;
-import org.wickedsource.budgeteer.service.contract.DynamicAttributeField;
 import org.wickedsource.budgeteer.web.BudgeteerSession;
 import org.wickedsource.budgeteer.web.components.dataTable.DataTableBehavior;
 import org.wickedsource.budgeteer.web.components.datelabel.DateLabel;
@@ -27,105 +23,91 @@ import org.wickedsource.budgeteer.web.components.tax.TaxBudgetUnitMoneyModel;
 import org.wickedsource.budgeteer.web.components.tax.TaxLabelModel;
 import org.wickedsource.budgeteer.web.pages.contract.details.ContractDetailsPage;
 import org.wickedsource.budgeteer.web.pages.contract.edit.EditContractPage;
+import org.wickedsource.budgeteer.web.pages.contract.model.ContractModel;
+import org.wickedsource.budgeteer.web.pages.contract.model.ContractModelMapper;
+import org.wickedsource.budgeteer.web.pages.contract.model.ContractOverviewModel;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.List;
-
-import static org.wicketstuff.lazymodel.LazyModel.from;
-import static org.wicketstuff.lazymodel.LazyModel.model;
+import java.util.ArrayList;
+import java.util.Map;
 
 public class ContractOverviewTable extends Panel {
 
     @SpringBean
-    private ContractService contractService;
+    private GetContractsInProjectPort getContractsInProjectPort;
+
+    @SpringBean
+    private ContractModelMapper contractModelMapper;
 
     public ContractOverviewTable(String id) {
         super(id);
-        ContractOverviewTableModel data = contractService.getContractOverviewByProject(BudgeteerSession.get().getProjectId());
-        WebMarkupContainer table = new WebMarkupContainer("table");
+        var model = Model.of(contractModelMapper.mapToModel(getContractsInProjectPort.getContractsInProject(BudgeteerSession.get().getProjectId())));
+        var table = new WebMarkupContainer("table");
 
         createNetGrossLabels(table);
-
         table.add(new DataTableBehavior(DataTableBehavior.getRecommendedOptions()));
-        table.add(new ListView<String>("headerRow", model(from(data).getHeadline())) {
+        table.add(new ListView<>("headerRow", model.map(ContractOverviewModel::attributeKeys)) {
             @Override
             protected void populateItem(ListItem<String> item) {
                 item.add(new Label("headerItem", item.getModelObject()));
             }
         });
-        table.add(new ListView<ContractBaseData>("contractRows", model(from(data).getContracts())) {
+        table.add(new ListView<>("contractRows", model.map(ContractOverviewModel::getContracts)) {
             @Override
-            protected void populateItem(ListItem<ContractBaseData> item) {
-                long contractId = item.getModelObject().getContractId();
-                BigDecimal taxCoefficient = BigDecimal.ONE;
+            protected void populateItem(ListItem<ContractModel> item) {
+                long contractId = item.getModelObject().getId();
 
-                if (BudgeteerSession.get().isTaxEnabled()) {
-                    taxCoefficient = BigDecimal.ONE.add(item.getModelObject().getTaxRate().divide(BigDecimal.valueOf(100), 4, RoundingMode.HALF_DOWN));
-                }
-                BookmarkablePageLink<EditContractPage> link = new BookmarkablePageLink<EditContractPage>("editContract",
+                var taxCoefficient = BudgeteerSession.get().isTaxEnabled() ? BigDecimal.ONE.add(item.getModelObject().getTaxRate().divide(BigDecimal.valueOf(100), 4, RoundingMode.HALF_DOWN)) : BigDecimal.ONE;
+                BookmarkablePageLink<EditContractPage> link = new BookmarkablePageLink<>("editContract",
                         ContractDetailsPage.class, EditContractPage.createParameters(contractId));
-                link.add(new Label("contractName", model(from(item.getModelObject()).getContractName())));
+                link.add(new Label("contractName", item.getModel().map(ContractModel::getName)));
                 item.add(link);
-                item.add(new Label("internalNumber", model(from(item.getModelObject()).getInternalNumber())));
-                item.add(new DateLabel("startDate", model(from(item.getModelObject()).getStartDate())));
-                item.add(new EnumLabel<ContractEntity.ContractType>("type", model(from(item.getModelObject()).getType())));
-                item.add(new ListView<DynamicAttributeField>("contractRow", model(from(item.getModelObject()).getContractAttributes())) {
+                item.add(new Label("internalNumber", item.getModel().map(ContractModel::getInternalNumber)));
+                item.add(new DateLabel("startDate", item.getModel().map(ContractModel::getStartDate)));
+                item.add(new EnumLabel<>("type", item.getModel().map(ContractModel::getType)));
+                item.add(new ListView<>("contractRow", item.getModel().map(ContractModel::getAttributes).map(Map::values).map(ArrayList::new)) {
                     @Override
-                    protected void populateItem(ListItem<DynamicAttributeField> item) {
-                        item.add(new Label("contractRowText", item.getModelObject().getValue()));
+                    protected void populateItem(ListItem<String> item) {
+                        item.add(new Label("contractRowText", item.getModel()));
                     }
                 });
-                item.add(new Label("budgetTotal", Model.of(MoneyUtil.toDouble(item.getModelObject().getBudget(),
-                        BudgeteerSession.get().getSelectedBudgetUnit(), taxCoefficient.doubleValue()))));
-                item.add(new Label("budgetSpent", Model.of(MoneyUtil.toDouble(item.getModelObject().getBudgetSpent(),
-                        BudgeteerSession.get().getSelectedBudgetUnit(), taxCoefficient.doubleValue()))));
-                item.add(new Label("budgetLeft", Model.of(MoneyUtil.toDouble(item.getModelObject().getBudgetLeft(),
-                        BudgeteerSession.get().getSelectedBudgetUnit(), taxCoefficient.doubleValue()))));
-                item.add(new BookmarkablePageLink("editLink", EditContractPage.class,
-                        EditContractPage.createParameters(contractId)));
+                item.add(new Label("budgetTotal", item.getModel().map(ContractModel::getBudget).map(budget -> MoneyUtil.toDouble(budget, BudgeteerSession.get().getSelectedBudgetUnit(), taxCoefficient.doubleValue()))));
+                item.add(new Label("budgetSpent", item.getModel().map(ContractModel::getBudgetSpent).map(budgetSpent -> MoneyUtil.toDouble(budgetSpent, BudgeteerSession.get().getSelectedBudgetUnit(), taxCoefficient.doubleValue()))));
+                item.add(new Label("budgetLeft", item.getModel().map(ContractModel::getBudgetLeft).map(budgetLeft -> MoneyUtil.toDouble(budgetLeft, BudgeteerSession.get().getSelectedBudgetUnit(), taxCoefficient.doubleValue()))));
+                item.add(new BookmarkablePageLink<>("editLink", EditContractPage.class, EditContractPage.createParameters(contractId)));
             }
         });
 
-        table.add(new ListView<String>("footerRow", model(from(data).getFooter())) {
-            @Override
-            protected void populateItem(ListItem<String> item) {
-                item.add(new Label("footerItem", item.getModelObject()));
-            }
-        });
-
-        addTableSummaryLabels(table, model(from(data.getContracts())));
+        addTableSummaryLabels(table, model);
         add(table);
     }
 
-    private void addTableSummaryLabels(WebMarkupContainer table, IModel<List<ContractBaseData>> model) {
-
-        IModel<ContractTotalData> totalModel = new TotalContractDetailsModel(model);
-
+    private void addTableSummaryLabels(WebMarkupContainer table, IModel<ContractOverviewModel> model) {
         // Fill up the columns which contain the contract attributes with empty cells
-        RepeatingView repeatingView = new RepeatingView("contractAttributeCell");
-        for (int i = 0; i < ((TotalContractDetailsModel) totalModel).getContractAttributeSize(); i++) {
+        var repeatingView = new RepeatingView("contractAttributeCell");
+        for (var i = 0; i < model.getObject().attributeCount(); i++) {
             repeatingView.add(new Label(repeatingView.newChildId(), ""));
         }
-
         table.add(repeatingView);
 
         table.add(new MoneyLabel("totalAmount",
                 new TaxBudgetUnitMoneyModel(
-                        new BudgetUnitMoneyModel(model(from(totalModel.getObject().getBudget()))),
-                        new BudgetUnitMoneyModel(model(from(totalModel.getObject().getBudgetGross())))
+                        new BudgetUnitMoneyModel(model.map(ContractOverviewModel::getTotalBudget)),
+                        new BudgetUnitMoneyModel(model.map(ContractOverviewModel::getTotalBudgetGross))
                 )));
         table.add(new MoneyLabel("totalSpent",
                 new TaxBudgetUnitMoneyModel(
-                        new BudgetUnitMoneyModel(model(from(totalModel.getObject().getBudgetSpent()))),
-                        new BudgetUnitMoneyModel(model(from(totalModel.getObject().getBudgetSpentGross())))
+                        new BudgetUnitMoneyModel(model.map(ContractOverviewModel::getTotalSpent)),
+                        new BudgetUnitMoneyModel(model.map(ContractOverviewModel::getTotalSpentGross))
                 )));
         table.add(new MoneyLabel("totalRemaining",
                 new TaxBudgetUnitMoneyModel(
-                        new BudgetUnitMoneyModel(model(from(totalModel.getObject().getBudgetLeft()))),
-                        new BudgetUnitMoneyModel(model(from(totalModel.getObject().getBudgetLeftGross())))
+                        new BudgetUnitMoneyModel(model.map(ContractOverviewModel::getTotalLeft)),
+                        new BudgetUnitMoneyModel(model.map(ContractOverviewModel::getTotalLeftGross))
                 )));
     }
+
 
     private void createNetGrossLabels(WebMarkupContainer table) {
         table.add(new Label("totalLabel", new TaxLabelModel(
