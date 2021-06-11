@@ -7,84 +7,80 @@ import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.regex.Matcher;
+import java.util.*;
+import java.util.function.Function;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
-public class SheetTemplate {
+public class SheetTemplate<T> {
 
-    public static final Pattern TEMPLATE_TAG_PATTERN = Pattern.compile("\\{([a-zA-Z0-9\\_\\-]+)(?:\\.(?<attribute>[a-zA-Z0-9\\-\\_\\.]+))?\\}");
-	
-	private Multimap<String,Integer> fieldMapping;
+    public static final Pattern TEMPLATE_TAG_PATTERN = Pattern.compile("\\{([a-zA-Z0-9_\\-]+)(?:\\.(?<attribute>[a-zA-Z0-9\\-_.]+))?}");
 
-	private Sheet sheet;
-	private int templateRowIndex;
-	private List<String> fieldList;
-	private Class<?> dtoClass;
-	private FlagTemplate flagTemplate;
-	
-	public SheetTemplate(Class<?> dtoClass, Sheet sheet) {
-		this.sheet = sheet;
-		this.dtoClass = dtoClass;
-		this.fieldMapping = ArrayListMultimap.create();
-		createFieldList();
-		processSheet();
-	}
+    private final Sheet sheet;
+    private final Multimap<String, Integer> fieldPositionInRow;
+    private final Map<String, Function<T, Object>> fieldMappers;
+    private final Map<String, Function<T, Collection<SheetTemplateSerializable>>> collectionMappers;
+    private final Map<String, Function<T, Map<String, String>>> mapMappers;
+    private final FlagTemplate flagTemplate;
 
-	private void createFieldList() {
-		fieldList = Arrays.stream(dtoClass.getDeclaredFields())
-				.map(field -> field.getName())
-				.collect(Collectors.toList());
-	}
-	
-	private void processSheet() {
-        if (sheet != null) {
-            findTemplateRow();
-            createFieldMapping();
-            checkForFlagTemplate();
+    public static <T> SheetTemplate<T> of(Map<String, Function<T, Object>> fieldMappers, Sheet sheet) {
+        return new SheetTemplate<>(fieldMappers, Collections.emptyMap(), Collections.emptyMap(), sheet);
+    }
+
+    public static <T> SheetTemplate<T> withCollection(Map<String, Function<T, Object>> fieldMappers, Map<String, Function<T, Collection<SheetTemplateSerializable>>> collectionMappers, Sheet sheet) {
+        return new SheetTemplate<>(fieldMappers, collectionMappers, Collections.emptyMap(), sheet);
+    }
+
+    public static <T> SheetTemplate<T> withMap(Map<String, Function<T, Object>> fieldMappers, Map<String, Function<T, Map<String, String>>> mapMappers, Sheet sheet) {
+        return new SheetTemplate<>(fieldMappers, Collections.emptyMap(), mapMappers, sheet);
+    }
+
+    private SheetTemplate(Map<String, Function<T, Object>> fieldsMappers,
+                          Map<String, Function<T, Collection<SheetTemplateSerializable>>> collectionMappers,
+                          Map<String, Function<T, Map<String, String>>> mapMappers,
+                          Sheet sheet) {
+        this.sheet = sheet;
+        this.fieldMappers = fieldsMappers;
+        this.collectionMappers = collectionMappers;
+        this.mapMappers = mapMappers;
+        this.fieldPositionInRow = createFieldMapping();
+        this.flagTemplate = checkForFlagTemplate();
+    }
+
+    private FlagTemplate checkForFlagTemplate() {
+        var flagSheet = sheet.getWorkbook().getSheet("Flags");
+        return flagSheet != null ? new FlagTemplate(flagSheet) : null;
+    }
+
+    private Multimap<String, Integer> createFieldMapping() {
+        var fieldMappings = ArrayListMultimap.<String, Integer>create();
+        for (Cell cell : sheet.getRow(findTemplateRow())) {
+            List<String> fields = mapCellValueToFieldNames(cell);
+            if (!fields.isEmpty()) {
+                fields.forEach(name -> fieldMappings.put(name, cell.getColumnIndex()));
+            }
         }
-	}
+        return fieldMappings;
+    }
 
-	private void checkForFlagTemplate() {
-		Sheet flagSheet =sheet.getWorkbook().getSheet("Flags");
-		if(flagSheet != null) {
-			flagTemplate = new FlagTemplate(flagSheet);
-		} else {
-			flagTemplate = null;
-		}
-	}
+    public int findTemplateRow() {
+        for (Row currentRow : sheet) {
+            if (rowContainsTemplate(currentRow)) {
+                return currentRow.getRowNum();
+            }
+        }
+        return 0;
+    }
 
-	private void createFieldMapping() {
-		for(Cell cell : sheet.getRow(templateRowIndex)) {
-			List<String> fields = mapCellValueToFieldNames(cell);
-			if(null != fields) {
-				fields.stream().forEach(name -> fieldMapping.put(name, cell.getColumnIndex()));
-			}
-		}
-	}
+    private boolean rowContainsTemplate(Row currentRow) {
+        for (Cell cell : currentRow) {
+            if (cellContainsTemplateTag(cell)) {
+                return true;
+            }
+        }
+        return false;
+    }
 
-	private void findTemplateRow() {
-		for(Row currentRow : sheet) {
-			if(rowContainsTemplate(currentRow)) {
-				templateRowIndex = currentRow.getRowNum();
-				return;
-			}
-		}
-	}
-	
-	private boolean rowContainsTemplate(Row currentRow) {
-		for(Cell cell : currentRow) {
-			if(cellContainsTemplateTag(cell)) {
-				return true;
-			}
-		}
-		return false;
-	}
-
-    String getCellValue(Cell cell) {
+    private String getCellValue(Cell cell) {
         String cellValue = null;
         if (cell.getCellTypeEnum().equals(CellType.FORMULA)) {
             cellValue = cell.getCellFormula();
@@ -95,78 +91,60 @@ public class SheetTemplate {
     }
 
 
-    /**
-     * @param cell
-     * @return
-     * @throws IllegalArgumentException
-     */
-    List<String> mapCellValueToFieldNames(Cell cell) {
+    private List<String> mapCellValueToFieldNames(Cell cell) {
         String cellValue = getCellValue(cell);
         if (cellValue == null) {
-            return null;
+            return Collections.emptyList();
         }
-
-        List<String> fields = getFieldFromCellValue(cellValue);
-        return fields;
+        return getFieldFromCellValue(cellValue);
     }
 
     private List<String> getFieldFromCellValue(String cellValue) {
-        Matcher matcher = TEMPLATE_TAG_PATTERN.matcher(cellValue);
-        List<String> fields = new ArrayList<String>(matcher.groupCount());
+        var matcher = TEMPLATE_TAG_PATTERN.matcher(cellValue);
+        var fields = new ArrayList<String>(matcher.groupCount());
         while (matcher.find()) {
             String field = matcher.group(1);
-            if (dtoHasField(field)) {
-                if (matcher.group("attribute") == null) {
-                    fields.add(field);
-                } else {
-                    fields.add(field + "." + matcher.group("attribute"));
-                }
+            if (hasMapping(field)) {
+                fields.add(field);
             }
         }
         return fields;
     }
 
-    boolean dtoHasField(String group) {
+    boolean hasMapping(String group) {
         if (group.charAt(0) == '.') {
             return false;
         }
         String[] tokens = group.split("\\.");
-        return fieldList.contains(tokens[0]);
+        return fieldMappers.containsKey(tokens[0]) || collectionMappers.containsKey(tokens[0]) || mapMappers.containsKey(tokens[0]);
     }
 
-	/**
-	 * 
-	 * @param cell
-	 * @return
-	 */
-	boolean cellContainsTemplateTag(Cell cell) {
-		List<String> fields = mapCellValueToFieldNames(cell);
-		return (null != fields && fields.size() > 0);
-	}
+    boolean cellContainsTemplateTag(Cell cell) {
+        return !mapCellValueToFieldNames(cell).isEmpty();
+    }
 
-	public Multimap<String, Integer> getFieldMapping() {
-		return fieldMapping;
-	}
-	
-	public int getTemplateRowIndex() {
-		return templateRowIndex;
-	}
+    public Multimap<String, Integer> getFieldPositionInRow() {
+        return fieldPositionInRow;
+    }
 
-	public Class<?> getDtoClass() {
-		return dtoClass;
-	}
+    public Sheet getSheet() {
+        return sheet;
+    }
 
-	public Sheet getSheet() {
-		return sheet;
-	}
+    public Map<String, Function<T, Object>> getFieldMappers() {
+        return fieldMappers;
+    }
 
-	public List<String> getFieldList() {
-		return fieldList;
-	}
-	
-	FlagTemplate getFlagTemplate() {
-		return flagTemplate;
-	}
-	
-	
+    public Map<String, Function<T, Collection<SheetTemplateSerializable>>> getCollectionMappers() {
+        return collectionMappers;
+    }
+
+    public Map<String, Function<T, Map<String, String>>> getMapMappers() {
+        return mapMappers;
+    }
+
+    FlagTemplate getFlagTemplate() {
+        return flagTemplate;
+    }
+
 }

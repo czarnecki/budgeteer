@@ -6,9 +6,8 @@ import org.apache.wicket.util.tester.WicketTester;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.wickedsource.budgeteer.service.budget.BudgetService;
-import org.wickedsource.budgeteer.service.budget.EditBudgetData;
+import org.wickedsource.budgeteer.service.budget.EditBudgetModel;
 import org.wickedsource.budgeteer.web.AbstractWebTestTemplate;
 import org.wickedsource.budgeteer.web.pages.budgets.edit.EditBudgetPage;
 import org.wickedsource.budgeteer.web.pages.budgets.exception.InvalidBudgetImportKeyAndNameException;
@@ -64,7 +63,7 @@ public class EditBudgetFormTest extends AbstractWebTestTemplate {
     @Test
     void testSubmitValidInput() {
         when(budgetServiceMock.saveBudget(any())).thenReturn(0L);
-        when(budgetServiceMock.loadBudgetToEdit(anyLong())).thenReturn(new EditBudgetData(1));
+        when(budgetServiceMock.loadBudgetToEdit(anyLong())).thenReturn(new EditBudgetModel(1));
         FormTester formTester = tester.newFormTester("form", false);
         fillName(formTester);
         fillImportKey(formTester);

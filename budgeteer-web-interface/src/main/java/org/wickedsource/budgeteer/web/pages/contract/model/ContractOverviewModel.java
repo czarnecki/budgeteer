@@ -2,16 +2,15 @@ package org.wickedsource.budgeteer.web.pages.contract.model;
 
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
-import lombok.Value;
 import org.joda.money.CurrencyUnit;
 import org.joda.money.Money;
 import org.wickedsource.budgeteer.MoneyUtil;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Data
 @RequiredArgsConstructor
@@ -47,7 +46,7 @@ public class ContractOverviewModel implements Serializable {
         if (contracts.isEmpty()) {
             return Collections.emptyList();
         }
-        return new ArrayList<>(contracts.get(0).getAttributes().keySet());
+        return contracts.get(0).getAttributes().stream().map(ContractModel.Attribute::getKey).collect(Collectors.toList());
     }
 
     public int attributeCount() {

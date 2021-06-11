@@ -1,14 +1,14 @@
 package org.wickedsource.budgeteer.web.pages.contract.overview.report.form;
 
 import java.io.Serializable;
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 
 public class FormattedDate implements Serializable {
-	private String label;
-	private Date date;
+	private final String label;
+	private final LocalDate date;
 	
-	public FormattedDate(Date date, SimpleDateFormat format) {
+	public FormattedDate(LocalDate date, DateTimeFormatter format) {
 		this.label = format.format(date);
 		this.date = date;
 	}
@@ -17,17 +17,7 @@ public class FormattedDate implements Serializable {
 		return label;
 	}
 
-	public void setLabel(String label) {
-		this.label = label;
-	}
-
-	public Date getDate() {
+	public LocalDate getDate() {
 		return date;
 	}
-
-	public void setDate(Date date) {
-		this.date = date;
-	}
-	
-	
 }

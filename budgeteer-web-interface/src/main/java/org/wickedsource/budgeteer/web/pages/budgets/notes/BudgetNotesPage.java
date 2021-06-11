@@ -5,7 +5,7 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.apache.wicket.util.string.StringValue;
 import org.wickedsource.budgeteer.service.budget.BudgetService;
-import org.wickedsource.budgeteer.service.budget.EditBudgetData;
+import org.wickedsource.budgeteer.service.budget.EditBudgetModel;
 import org.wickedsource.budgeteer.web.Mount;
 import org.wickedsource.budgeteer.web.pages.base.basepage.BasePage;
 import org.wickedsource.budgeteer.web.pages.base.basepage.breadcrumbs.Breadcrumb;
@@ -28,7 +28,7 @@ public class BudgetNotesPage extends BasePage {
     public BudgetNotesPage() {
         super();
 
-        Form<EditBudgetData> form = new BudgetNotesForm("form");
+        Form<EditBudgetModel> form = new BudgetNotesForm("form");
         add(form);
     }
 
@@ -40,8 +40,8 @@ public class BudgetNotesPage extends BasePage {
     public BudgetNotesPage(PageParameters pageParameters) {
         super(pageParameters);
 
-        EditBudgetData budgetData = service.loadBudgetToEdit(getBudgetId());
-        Form<EditBudgetData> form = new BudgetNotesForm("form", model(from(budgetData)));
+        EditBudgetModel budgetData = service.loadBudgetToEdit(getBudgetId());
+        Form<EditBudgetModel> form = new BudgetNotesForm("form", model(from(budgetData)));
         add(form);
     }
 

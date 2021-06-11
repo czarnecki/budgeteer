@@ -21,5 +21,5 @@ class ContractReportData {
 	private double budgetTotal_gross;
 	private Double taxRate;
 	private Double progress;
-	private List<? extends SheetTemplateSerializable> attributes;
+	private List<SheetTemplateSerializable> attributes;
 }

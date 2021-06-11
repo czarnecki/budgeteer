@@ -157,19 +157,19 @@ class TemplateWriterTest {
 
 	@Test
 	void testSubkeyOfWithDotAtTheEnd() {
-		String result = tw.subkeyOf("test.name.");
+		String result = tw.subKeyOf("test.name.");
 		assertEquals("name.", result);
 	}
 
 	@Test
 	void testSubkeyOfWithMultipleDots() {
-		String result = tw.subkeyOf("test.name.multiple.test");
+		String result = tw.subKeyOf("test.name.multiple.test");
 		assertEquals("name.multiple.test", result);
 	}
 
 	@Test
 	void testSubkeyOfWithNoDots() {
-		String result = tw.subkeyOf("test");
+		String result = tw.subKeyOf("test");
 		assertNull(result);
 	}
 }

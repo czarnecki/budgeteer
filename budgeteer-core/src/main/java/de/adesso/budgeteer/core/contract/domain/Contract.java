@@ -1,9 +1,11 @@
 package de.adesso.budgeteer.core.contract.domain;
 
+import de.adesso.budgeteer.core.common.Attachment;
 import lombok.Value;
 import org.joda.money.Money;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Date;
 import java.util.Map;
 
@@ -20,6 +22,11 @@ public class Contract {
     Money budgetLeft;
     BigDecimal taxRate;
     Map<String, String> attributes;
+    Attachment attachment;
+
+    public BigDecimal taxRateAsCoefficient() {
+        return BigDecimal.ONE.add(taxRate.divide(BigDecimal.valueOf(100), RoundingMode.HALF_DOWN));
+    }
 
     public enum Type {
         TIME_AND_MATERIAL,

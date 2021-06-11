@@ -10,4 +10,8 @@ import java.io.Serializable;
 public class ContractReportMetaInformation implements Serializable {
 	private FormattedDate selectedMonth;
 	private Template template;
+
+	public ContractReportMetaInformation(Template template) {
+		this.template = template;
+	}
 }

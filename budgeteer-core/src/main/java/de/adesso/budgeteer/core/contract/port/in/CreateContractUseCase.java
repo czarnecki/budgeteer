@@ -8,12 +8,12 @@ import java.math.BigDecimal;
 import java.util.Date;
 import java.util.Map;
 
-public interface UpdateContractUseCase {
-    void updateContract(UpdateContractCommand command);
+public interface CreateContractUseCase {
+    void createContract(CreateContractCommand command);
 
     @Value
-    class UpdateContractCommand {
-        long contractId;
+    class CreateContractCommand {
+        long projectId;
         String name;
         String internalNumber;
         Date startDate;

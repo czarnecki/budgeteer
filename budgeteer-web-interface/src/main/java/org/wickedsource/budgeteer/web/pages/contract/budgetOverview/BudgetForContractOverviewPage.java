@@ -15,7 +15,7 @@ public class BudgetForContractOverviewPage extends BasePage {
 
     public BudgetForContractOverviewPage(PageParameters pageParameters) {
         super(pageParameters);
-        add(new BudgetOverviewTable("budgetTable", new FilteredBudgetModelByContract(getParameterId()), getBreadcrumbsModel()));
+        add(new BudgetOverviewTable("budgetTable", new FilteredBudgetModelByContract(getParameterId())));
     }
 
     @SuppressWarnings("unchecked")

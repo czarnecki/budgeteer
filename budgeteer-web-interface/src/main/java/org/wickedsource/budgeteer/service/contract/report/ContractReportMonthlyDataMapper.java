@@ -33,7 +33,7 @@ public class ContractReportMonthlyDataMapper {
         for(ContractFieldEntity fieldEntity : contract.getContractFields()){
             contractAttributes.put(fieldEntity.getField().getFieldName(), new DynamicAttributeField(fieldEntity.getField().getFieldName(), fieldEntity.getValue()));
         }
-        report.setAttributes(new ArrayList<DynamicAttributeField>(contractAttributes.values()));
+        report.setAttributes(new ArrayList<>(contractAttributes.values()));
         report.setId(contract.getId());
         report.setTaxRate(contract.getTaxRate() != null ? contract.getTaxRate().doubleValue() / 100 : 0);
         report.setFrom(Date.from(firstOfMonth.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant()));

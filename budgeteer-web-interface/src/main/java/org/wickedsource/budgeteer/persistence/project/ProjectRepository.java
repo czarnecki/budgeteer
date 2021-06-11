@@ -29,4 +29,7 @@ public interface ProjectRepository extends CrudRepository<ProjectEntity, Long> {
     void updateDefaultProject(@Param("userId") long userId, @Param("projectId") long projectId);
 
     boolean existsByName(String name);
+
+    @Query("SELECT CASE WHEN COUNT(contract) > 0 THEN true ELSE false END FROM ContractEntity contract WHERE contract.project.id = :projectId")
+    boolean hasContracts(@Param("projectId") long projectId);
 }

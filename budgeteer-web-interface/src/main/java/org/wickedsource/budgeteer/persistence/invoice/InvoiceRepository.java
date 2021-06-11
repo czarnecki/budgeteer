@@ -12,6 +12,11 @@ public interface InvoiceRepository extends CrudRepository<InvoiceEntity, Long> {
     @Query("Select ie from InvoiceEntity ie where ie.contract.project.id = :projectID")
     List<InvoiceEntity> findByProjectId(@Param("projectID") long projectId);
 
+    @Query("SELECT invoice FROM InvoiceEntity invoice " +
+            "WHERE invoice.contract.id = :contractId " +
+            "AND invoice.year < :year OR (invoice.year = :year AND invoice.month <= :month)")
+    List<InvoiceEntity> findUpToYearAndMonthInContract(@Param("contractId") long contractId, @Param("year") int year, @Param("month") int month);
+
     List<InvoiceEntity> findByContractId(long contractId);
 
     @Modifying

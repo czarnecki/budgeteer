@@ -10,7 +10,7 @@ import java.io.Serializable;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class DynamicAttributeField implements Serializable, SheetTemplateSerializable{
+public class DynamicAttributeField implements Serializable, SheetTemplateSerializable {
     private String name;
     private String value;
 }

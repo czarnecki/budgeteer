@@ -16,7 +16,6 @@ import org.wickedsource.budgeteer.persistence.project.ProjectEntity;
 import org.wickedsource.budgeteer.persistence.record.PlanRecordRepository;
 import org.wickedsource.budgeteer.persistence.record.WorkRecordRepository;
 import org.wickedsource.budgeteer.service.ServiceTestTemplate;
-import org.wickedsource.budgeteer.service.contract.ContractBaseData;
 
 import java.util.*;
 
@@ -105,7 +104,7 @@ class BudgetServiceTest extends ServiceTestTemplate {
     void testLoadBudgetToEdit() {
         Optional<BudgetEntity> budgetOptional = createBudgetEntityOptional();
         when(budgetRepository.findById(1L)).thenReturn(budgetOptional);
-        EditBudgetData data = budgetService.loadBudgetToEdit(1L);
+        EditBudgetModel data = budgetService.loadBudgetToEdit(1L);
         BudgetEntity budget = budgetOptional.get();
 
         verify(budgetRepository, times(1)).findById(1L);
@@ -126,7 +125,7 @@ class BudgetServiceTest extends ServiceTestTemplate {
         when(budgetRepository.findById(1L)).thenReturn(budgetEntityOptional);
 
 
-        EditBudgetData data = getEditBudgetEntity();
+        EditBudgetModel data = getEditBudgetEntity();
 
         budgetService.saveBudget(data);
 
@@ -149,7 +148,7 @@ class BudgetServiceTest extends ServiceTestTemplate {
         ContractEntity contractEntity = createContract();
         when(contractRepository.findById(1L)).thenReturn(Optional.of(contractEntity));
 
-        EditBudgetData data = new EditBudgetData();
+        EditBudgetModel data = new EditBudgetModel();
         data.setId(1L);
         ContractBaseData contractBaseData = new ContractBaseData();
         contractBaseData.setContractId(1L);
@@ -229,8 +228,8 @@ class BudgetServiceTest extends ServiceTestTemplate {
         return Optional.of(budget);
     }
 
-    private EditBudgetData createBudgetEditEntity() {
-        EditBudgetData data = new EditBudgetData();
+    private EditBudgetModel createBudgetEditEntity() {
+        EditBudgetModel data = new EditBudgetModel();
         data.setId(1L);
         data.setImportKey("budget123");
         data.setTags(Arrays.asList("1", "2"));
@@ -239,8 +238,8 @@ class BudgetServiceTest extends ServiceTestTemplate {
         return data;
     }
 
-    private EditBudgetData getEditBudgetEntity() {
-        EditBudgetData data = new EditBudgetData();
+    private EditBudgetModel getEditBudgetEntity() {
+        EditBudgetModel data = new EditBudgetModel();
         data.setId(1L);
         data.setImportKey("import");
         data.setTags(Arrays.asList("1", "2"));

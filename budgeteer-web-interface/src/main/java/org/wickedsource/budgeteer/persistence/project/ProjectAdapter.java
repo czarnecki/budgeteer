@@ -19,8 +19,11 @@ import org.wickedsource.budgeteer.persistence.user.UserEntity;
 import org.wickedsource.budgeteer.persistence.user.UserRepository;
 
 import javax.transaction.Transactional;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
@@ -34,7 +37,10 @@ public class ProjectAdapter implements GetProjectPort,
         UpdateProjectPort,
         DeleteProjectPort,
         AddUserToProjectPort,
-        RemoveUserFromProjectPort {
+        RemoveUserFromProjectPort,
+        ProjectExistsWithIdPort,
+        GetProjectAttributesPort,
+        ProjectHasContractsPort {
 
     private final ProjectMapper projectMapper;
     private final ProjectRepository projectRepository;
@@ -96,7 +102,6 @@ public class ProjectAdapter implements GetProjectPort,
         projectEntity.setName(name);
         projectEntity.setProjectStart(dateRange.getStartDate());
         projectEntity.setProjectEnd(dateRange.getEndDate());
-        System.out.println(projectEntity);
         projectRepository.save(projectEntity);
     }
 
@@ -114,7 +119,7 @@ public class ProjectAdapter implements GetProjectPort,
         invoiceRepository.deleteByProjectId(projectId);
         contractRepository.deleteContractFieldByProjectId(projectId);
         contractRepository.deleteByProjectId(projectId);
-        ProjectEntity projectEntity = projectRepository.findById(projectId).orElse(null);
+        var projectEntity = projectRepository.findById(projectId).orElse(null);
         if (projectEntity != null) {
             List<UserEntity> userList = projectEntity.getAuthorizedUsers();
             if (userList != null) {
@@ -132,8 +137,8 @@ public class ProjectAdapter implements GetProjectPort,
     @Override
     @Transactional
     public void addUserToProject(long userId, long projectId) {
-        ProjectEntity projectEntity = projectRepository.findById(projectId).orElseThrow();
-        UserEntity userEntity = userRepository.findById(userId).orElseThrow();
+        var projectEntity = projectRepository.findById(projectId).orElseThrow();
+        var userEntity = userRepository.findById(userId).orElseThrow();
         projectEntity.getAuthorizedUsers().add(userEntity);
         projectRepository.save(projectEntity);
     }
@@ -141,9 +146,30 @@ public class ProjectAdapter implements GetProjectPort,
     @Override
     @Transactional
     public void removeUserFromProject(long userId, long projectId) {
-        ProjectEntity projectEntity = projectRepository.findById(projectId).orElseThrow();
-        UserEntity userEntity = userRepository.findById(userId).orElseThrow();
+        var projectEntity = projectRepository.findById(projectId).orElseThrow();
+        var userEntity = userRepository.findById(userId).orElseThrow();
         projectEntity.getAuthorizedUsers().remove(userEntity);
         projectRepository.save(projectEntity);
+    }
+
+    @Override
+    public boolean projectExistsWithId(long projectId) {
+        return projectRepository.existsById(projectId);
+    }
+
+    @Override
+    public List<String> getProjectAttributes(long projectId) {
+        return Optional.ofNullable(projectRepository.findByIdAndFetchContractFields(projectId))
+                .map(ProjectEntity::getContractFields)
+                .orElseGet(ArrayList::new)
+                .stream()
+                .map(ProjectContractField::getFieldName)
+                .collect(Collectors.toList());
+    }
+
+
+    @Override
+    public boolean projectHasContracts(long projectId) {
+        return projectRepository.hasContracts(projectId);
     }
 }

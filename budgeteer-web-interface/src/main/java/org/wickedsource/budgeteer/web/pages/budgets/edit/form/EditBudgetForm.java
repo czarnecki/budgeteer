@@ -1,6 +1,6 @@
 package org.wickedsource.budgeteer.web.pages.budgets.edit.form;
 
-import org.apache.wicket.Component;
+import de.adesso.budgeteer.core.contract.port.in.GetContractsInProjectUseCase;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.injection.Injector;
@@ -12,15 +12,13 @@ import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LambdaModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.ResourceModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.wickedsource.budgeteer.service.budget.BudgetService;
-import org.wickedsource.budgeteer.service.budget.EditBudgetData;
-import org.wickedsource.budgeteer.service.contract.ContractBaseData;
-import org.wickedsource.budgeteer.service.contract.ContractService;
+import org.wickedsource.budgeteer.service.budget.EditBudgetModel;
 import org.wickedsource.budgeteer.web.BudgeteerSession;
 import org.wickedsource.budgeteer.web.ClassAwareWrappingModel;
 import org.wickedsource.budgeteer.web.components.customFeedback.CustomFeedbackPanel;
@@ -34,29 +32,34 @@ import org.wickedsource.budgeteer.web.pages.budgets.exception.InvalidBudgetImpor
 import org.wickedsource.budgeteer.web.pages.budgets.exception.InvalidBudgetImportKeyException;
 import org.wickedsource.budgeteer.web.pages.budgets.exception.InvalidBudgetNameException;
 import org.wickedsource.budgeteer.web.pages.budgets.overview.BudgetsOverviewPage;
+import org.wickedsource.budgeteer.web.pages.contract.model.ContractModel;
+import org.wickedsource.budgeteer.web.pages.contract.model.ContractModelMapper;
 
 import java.util.List;
 
 import static org.wicketstuff.lazymodel.LazyModel.from;
 import static org.wicketstuff.lazymodel.LazyModel.model;
 
-public class EditBudgetForm extends Form<EditBudgetData> {
+public class EditBudgetForm extends Form<EditBudgetModel> {
 
     @SpringBean
     private BudgetService service;
 
     @SpringBean
-    private ContractService contractService;
+    private GetContractsInProjectUseCase getContractsInProjectUseCase;
+
+    @SpringBean
+    private ContractModelMapper contractModelMapper;
 
     private boolean isEditing;
 
     public EditBudgetForm(String id) {
-        super(id, new ClassAwareWrappingModel<>(Model.of(new EditBudgetData(BudgeteerSession.get().getProjectId())), EditBudgetData.class));
+        super(id, new ClassAwareWrappingModel<>(Model.of(new EditBudgetModel(BudgeteerSession.get().getProjectId())), EditBudgetModel.class));
         addComponents();
         this.isEditing = false;
     }
 
-    public EditBudgetForm(String id, IModel<EditBudgetData> model, boolean isEditingNewBudget) {
+    public EditBudgetForm(String id, IModel<EditBudgetModel> model, boolean isEditingNewBudget) {
         super(id, model);
         this.isEditing = true;
         Injector.get().inject(this);
@@ -88,17 +91,17 @@ public class EditBudgetForm extends Form<EditBudgetData> {
         add(totalField);
         MoneyTextField limitField = new MoneyTextField("limit", model(from(getModel()).getLimit()));
         add(limitField);
-        DropDownChoice<ContractBaseData> contractDropDown = new DropDownChoice<>("contract", model(from(getModel()).getContract()),
-                contractService.getContractsByProject(BudgeteerSession.get().getProjectId()),
-                new AbstractChoiceRenderer<ContractBaseData>() {
+        var contractDropDown = new DropDownChoice<>("contract", LambdaModel.of(getModel(), EditBudgetModel::getContract, EditBudgetModel::setContract),
+                contractModelMapper.mapToModel(getContractsInProjectUseCase.getContractsInProject(BudgeteerSession.get().getProjectId())),
+                new AbstractChoiceRenderer<>() {
                     @Override
-                    public Object getDisplayValue(ContractBaseData object) {
-                        return object == null ? getString("no.contract") : object.getContractName();
+                    public Object getDisplayValue(ContractModel contractModel) {
+                        return contractModel == null ? getString("no.contract") : contractModel.getName();
                     }
                 });
         contractDropDown.setNullValid(true);
         add(contractDropDown);
-        add(createTagsList("tagsList", new BudgetTagsModel(BudgeteerSession.get().getProjectId()), tagsField));
+        add(createTagsList(new BudgetTagsModel(BudgeteerSession.get().getProjectId()), tagsField));
         add(new NotificationListPanel("notificationList", new BudgetNotificationsModel(getModel().getObject().getId())));
 
         //Label for the submit button
@@ -111,18 +114,17 @@ public class EditBudgetForm extends Form<EditBudgetData> {
         add(submitButtonLabel);
     }
 
-    private ListView<String> createTagsList(String id, IModel<List<String>> model, final Component tagsField) {
-        return new ListView<String>(id, model) {
+    private ListView<String> createTagsList(IModel<List<String>> model, TagsTextField tagsField) {
+        return new ListView<>("tagsList", model) {
             @Override
             protected void populateItem(final ListItem<String> item) {
-                Label label = new Label("tag", model(from(item.getModel())));
+                var label = new Label("tag", model(from(item.getModel())));
                 label.setRenderBodyOnly(true);
                 item.add(label);
                 item.add(new AjaxEventBehavior("click") {
-                    @SuppressWarnings("unchecked")
                     @Override
                     protected void onEvent(AjaxRequestTarget target) {
-                        ((List<String>) tagsField.getDefaultModelObject()).add(item.getModelObject());
+                        tagsField.getModelObject().add(item.getModelObject());
                         target.appendJavaScript(String.format("$('#%s').tagsinput('add', '%s');", tagsField.getMarkupId(), item.getModelObject()));
                     }
                 });
@@ -130,7 +132,7 @@ public class EditBudgetForm extends Form<EditBudgetData> {
 
             @Override
             protected ListItem<String> newItem(int index, IModel<String> itemModel) {
-                return super.newItem(index, new ClassAwareWrappingModel<String>(itemModel, String.class));
+                return super.newItem(index, new ClassAwareWrappingModel<>(itemModel, String.class));
             }
         };
     }

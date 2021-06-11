@@ -82,7 +82,7 @@ class SheetTemplateTest {
 	
 	@Test
 	void testGetCellMapping() {
-		Multimap<String,Integer> mapping = st.getFieldMapping();
+		Multimap<String,Integer> mapping = st.getFieldPositionInRow();
 		assertNotNull(mapping);
 		
 		assertTrue(mapping.containsKey("test"));
@@ -191,8 +191,8 @@ class SheetTemplateTest {
 	@Test
 	void testmapCellValueToFieldNamesWithMultipleDynamicFields() {
 		st = spy(st);
-		when(st.dtoHasField("dynamic")).thenReturn(true);
-		when(st.dtoHasField("veryDynamic")).thenReturn(true);
+		when(st.hasField("dynamic")).thenReturn(true);
+		when(st.hasField("veryDynamic")).thenReturn(true);
 
 		Cell cellMock = Mockito.mock(Cell.class);
 		when(cellMock.getCellTypeEnum()).thenReturn(CellType.STRING);
@@ -208,7 +208,7 @@ class SheetTemplateTest {
 	@Test
 	void testmapCellValueToFieldNamesWithUnderscore() {
 		st = spy(st);
-		when(st.dtoHasField("test_name")).thenReturn(true);
+		when(st.hasField("test_name")).thenReturn(true);
 		Cell cellMock = Mockito.mock(Cell.class);
 		when(cellMock.getCellTypeEnum()).thenReturn(CellType.STRING);
 		when(cellMock.getStringCellValue()).thenReturn("{test_name}"); // not valid

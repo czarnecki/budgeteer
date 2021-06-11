@@ -29,8 +29,6 @@ import org.wickedsource.budgeteer.web.pages.contract.model.ContractOverviewModel
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.ArrayList;
-import java.util.Map;
 
 public class ContractOverviewTable extends Panel {
 
@@ -42,7 +40,7 @@ public class ContractOverviewTable extends Panel {
 
     public ContractOverviewTable(String id) {
         super(id);
-        var model = Model.of(contractModelMapper.mapToModel(getContractsInProjectPort.getContractsInProject(BudgeteerSession.get().getProjectId())));
+        var model = Model.of(contractModelMapper.mapToOverviewModel(getContractsInProjectPort.getContractsInProject(BudgeteerSession.get().getProjectId())));
         var table = new WebMarkupContainer("table");
 
         createNetGrossLabels(table);
@@ -66,10 +64,10 @@ public class ContractOverviewTable extends Panel {
                 item.add(new Label("internalNumber", item.getModel().map(ContractModel::getInternalNumber)));
                 item.add(new DateLabel("startDate", item.getModel().map(ContractModel::getStartDate)));
                 item.add(new EnumLabel<>("type", item.getModel().map(ContractModel::getType)));
-                item.add(new ListView<>("contractRow", item.getModel().map(ContractModel::getAttributes).map(Map::values).map(ArrayList::new)) {
+                item.add(new ListView<>("contractRow", item.getModel().map(ContractModel::getAttributes)) {
                     @Override
-                    protected void populateItem(ListItem<String> item) {
-                        item.add(new Label("contractRowText", item.getModel()));
+                    protected void populateItem(ListItem<ContractModel.Attribute> item) {
+                        item.add(new Label("contractRowText", item.getModel().map(ContractModel.Attribute::getValue)));
                     }
                 });
                 item.add(new Label("budgetTotal", item.getModel().map(ContractModel::getBudget).map(budget -> MoneyUtil.toDouble(budget, BudgeteerSession.get().getSelectedBudgetUnit(), taxCoefficient.doubleValue()))));

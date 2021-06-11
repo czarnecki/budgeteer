@@ -12,45 +12,40 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.handler.resource.ResourceStreamRequestHandler;
 import org.apache.wicket.util.resource.AbstractResourceStreamWriter;
-import org.wickedsource.budgeteer.persistence.contract.ContractEntity;
-import org.wickedsource.budgeteer.service.contract.ContractBaseData;
-import org.wickedsource.budgeteer.service.contract.DynamicAttributeField;
 import org.wickedsource.budgeteer.web.components.datelabel.DateLabel;
+import org.wickedsource.budgeteer.web.pages.contract.model.ContractModel;
 
 import java.io.IOException;
 import java.io.OutputStream;
 
-import static org.wicketstuff.lazymodel.LazyModel.from;
-import static org.wicketstuff.lazymodel.LazyModel.model;
-
 public class ContractHighlightsPanel extends Panel {
 
-    public ContractHighlightsPanel(String id, final IModel<ContractBaseData> model) {
+    public ContractHighlightsPanel(String id, final IModel<ContractModel> model) {
         super(id, model);
-        add(new Label("name", model(from(model.getObject()).getContractName())));
-        add(new Label("internalNumber", model(from(model.getObject()).getInternalNumber())));
-        add(new DateLabel("startDate", model(from(model.getObject()).getStartDate())));
-        add(new EnumLabel<ContractEntity.ContractType>("type", model(from(model.getObject()).getType())));
-        add(new Label("budget", model(from(model.getObject()).getBudget())));
+        add(new Label("name", model.map(ContractModel::getName)));
+        add(new Label("internalNumber", model.map(ContractModel::getInternalNumber)));
+        add(new DateLabel("startDate", model.map(ContractModel::getStartDate)));
+        add(new EnumLabel<>("type", model.map(ContractModel::getType)));
+        add(new Label("budget", model.map(ContractModel::getBudget)));
 
 
         WebMarkupContainer linkContainer = new WebMarkupContainer("linkContainer"){
             @Override
             public boolean isVisible() {
-                return model.getObject().getFileModel().getLink() != null && !model.getObject().getFileModel().getLink().isEmpty();
+                return model.getObject().getFileUploadModel().getLink() != null && !model.getObject().getFileUploadModel().getLink().isEmpty();
             }
         };
-        linkContainer.add(new ExternalLink("link", Model.of(model.getObject().getFileModel().getLink()), Model.of(model.getObject().getFileModel().getLink())));
+        linkContainer.add(new ExternalLink("link", Model.of(model.getObject().getFileUploadModel().getLink()), Model.of(model.getObject().getFileUploadModel().getLink())));
         add(linkContainer);
 
         WebMarkupContainer fileContainer = new WebMarkupContainer("fileContainer"){
             @Override
             public boolean isVisible() {
-                return model.getObject().getFileModel().getFileName() != null && !model.getObject().getFileModel().getFileName().isEmpty();
+                return model.getObject().getFileUploadModel().getFileName() != null && !model.getObject().getFileUploadModel().getFileName().isEmpty();
             }
         };
-        final byte[] file = model.getObject().getFileModel().getFile();
-        final String fileName = model.getObject().getFileModel().getFileName();
+        final byte[] file = model.getObject().getFileUploadModel().getFile();
+        final String fileName = model.getObject().getFileUploadModel().getFileName();
         Link<Void> fileDownloadLink = new Link<Void>("file") {
 
             @Override
@@ -69,11 +64,11 @@ public class ContractHighlightsPanel extends Panel {
         fileContainer.add(fileDownloadLink);
         add(fileContainer);
 
-        add(new ListView<DynamicAttributeField>("additionalInformation", model(from(model.getObject()).getContractAttributes())) {
+        add(new ListView<>("additionalInformation", model.map(ContractModel::getAttributes)) {
             @Override
-            protected void populateItem(ListItem<DynamicAttributeField> item) {
-                item.add(new Label("value", model(from(item.getModelObject()).getValue())));
-                item.add(new Label("key", model(from(item.getModelObject()).getName())));
+            protected void populateItem(ListItem<ContractModel.Attribute> item) {
+                item.add(new Label("value", item.getModel().map(ContractModel.Attribute::getValue)));
+                item.add(new Label("key", item.getModel().map(ContractModel.Attribute::getKey)));
             }
         });
     }

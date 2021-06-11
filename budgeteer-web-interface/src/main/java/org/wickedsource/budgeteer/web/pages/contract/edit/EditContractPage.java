@@ -1,26 +1,29 @@
 package org.wickedsource.budgeteer.web.pages.contract.edit;
 
+import de.adesso.budgeteer.core.contract.port.in.GetContractByIdUseCase;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.apache.wicket.util.string.StringValue;
-import org.wickedsource.budgeteer.service.contract.ContractBaseData;
-import org.wickedsource.budgeteer.service.contract.ContractService;
 import org.wickedsource.budgeteer.web.Mount;
 import org.wickedsource.budgeteer.web.pages.base.dialogpage.DialogPageWithBacklink;
 import org.wickedsource.budgeteer.web.pages.contract.edit.form.EditContractForm;
+import org.wickedsource.budgeteer.web.pages.contract.model.ContractModel;
+import org.wickedsource.budgeteer.web.pages.contract.model.ContractModelMapper;
 import org.wickedsource.budgeteer.web.pages.contract.overview.ContractOverviewPage;
-
-import static org.wicketstuff.lazymodel.LazyModel.from;
-import static org.wicketstuff.lazymodel.LazyModel.model;
 
 @Mount({"contracts/edit/#{id}"})
 public class EditContractPage extends DialogPageWithBacklink {
 
     @SpringBean
-    private ContractService service;
+    private GetContractByIdUseCase getContractByIdUseCase;
+
+    @SpringBean
+    private ContractModelMapper contractModelMapper;
 
     /**
      * This constructor is used when you click on a link or try to access the EditContractPage manually
@@ -30,12 +33,12 @@ public class EditContractPage extends DialogPageWithBacklink {
     public EditContractPage(PageParameters parameters){
         super(parameters, ContractOverviewPage.class, new PageParameters());
         if (getContractId() == 0) {
-            Form<ContractBaseData> form = new EditContractForm("form");
+            var form = new EditContractForm("form");
             addComponents(form);
             add(new Label("pageTitle", "Create Contract"));
         } else {
-            ContractBaseData contractBaseData = service.getContractById(getContractId());
-            EditContractForm form = new EditContractForm("form", model(from(contractBaseData)));
+            var contract = Model.of(contractModelMapper.mapToModel(getContractByIdUseCase.getContractById(getContractId())));
+            var form = new EditContractForm("form", contract);
             addComponents(form);
             add(new Label("pageTitle", "Edit Contract"));
         }
@@ -45,7 +48,7 @@ public class EditContractPage extends DialogPageWithBacklink {
      */
     public EditContractPage(Class<? extends WebPage> backlinkPage, PageParameters backlinkParameters) {
         super(backlinkPage, backlinkParameters);
-        Form<ContractBaseData> form = new EditContractForm("form");
+        var form = new EditContractForm("form");
         addComponents(form);
         add(new Label("pageTitle", "Create Contract"));
     }
@@ -57,13 +60,13 @@ public class EditContractPage extends DialogPageWithBacklink {
      */
     public EditContractPage(PageParameters parameters, Class<? extends WebPage> backlinkPage, PageParameters backlinkParameters) {
         super(parameters, backlinkPage, backlinkParameters);
-        ContractBaseData contractBaseData = service.getContractById(getContractId());
-        EditContractForm form = new EditContractForm("form", model(from(contractBaseData)));
+        IModel<ContractModel> contract = () -> contractModelMapper.mapToModel(getContractByIdUseCase.getContractById(getContractId()));
+        var form = new EditContractForm("form", contract);
         addComponents(form);
         add(new Label("pageTitle", "Edit Contract"));
     }
 
-    private void addComponents(Form<ContractBaseData> form) {
+    private void addComponents(Form<ContractModel> form) {
         add(createBacklink("cancelButton1"));
         form.add(createBacklink("cancelButton2"));
         add(form);

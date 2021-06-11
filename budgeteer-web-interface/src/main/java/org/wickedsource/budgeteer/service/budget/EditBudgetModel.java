@@ -3,7 +3,7 @@ package org.wickedsource.budgeteer.service.budget;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.joda.money.Money;
-import org.wickedsource.budgeteer.service.contract.ContractBaseData;
+import org.wickedsource.budgeteer.web.pages.contract.model.ContractModel;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -11,7 +11,7 @@ import java.util.List;
 
 @NoArgsConstructor
 @Data
-public class EditBudgetData implements Serializable {
+public class EditBudgetModel implements Serializable {
 
     private long id;
     private long projectId;
@@ -22,9 +22,9 @@ public class EditBudgetData implements Serializable {
     private Money limit;
     private String importKey;
     private List<String> tags;
-    private ContractBaseData contract;
+    private ContractModel contract;
 
-    public EditBudgetData(long projectId) {
+    public EditBudgetModel(long projectId) {
         this.projectId = projectId;
         this.tags = new ArrayList<>();
     }

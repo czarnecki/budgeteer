@@ -1,13 +1,15 @@
 package org.wickedsource.budgeteer.web.pages.contract.details;
 
+import de.adesso.budgeteer.core.contract.port.in.DeleteContractUseCase;
+import de.adesso.budgeteer.core.contract.port.in.GetContractByIdUseCase;
 import org.apache.wicket.markup.html.WebPage;
-import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.SubmitLink;
 import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.markup.html.link.Link;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.wickedsource.budgeteer.service.contract.ContractService;
 import org.wickedsource.budgeteer.web.Mount;
 import org.wickedsource.budgeteer.web.components.confirm.ConfirmationForm;
 import org.wickedsource.budgeteer.web.pages.base.basepage.BasePage;
@@ -20,6 +22,8 @@ import org.wickedsource.budgeteer.web.pages.contract.details.differenceTable.Dif
 import org.wickedsource.budgeteer.web.pages.contract.details.differenceTable.DifferenceTableModel;
 import org.wickedsource.budgeteer.web.pages.contract.details.highlights.ContractHighlightsPanel;
 import org.wickedsource.budgeteer.web.pages.contract.edit.EditContractPage;
+import org.wickedsource.budgeteer.web.pages.contract.model.ContractModel;
+import org.wickedsource.budgeteer.web.pages.contract.model.ContractModelMapper;
 import org.wickedsource.budgeteer.web.pages.contract.overview.ContractOverviewPage;
 import org.wickedsource.budgeteer.web.pages.dashboard.DashboardPage;
 import org.wickedsource.budgeteer.web.pages.invoice.edit.EditInvoicePage;
@@ -28,48 +32,54 @@ import org.wickedsource.budgeteer.web.pages.invoice.edit.EditInvoicePage;
 public class ContractDetailsPage extends BasePage {
 
     @SpringBean
-    private ContractService contractService;
+    private DeleteContractUseCase deleteContractUseCase;
 
-    private static final int numberOfMonths = 6;
+    @SpringBean
+    private GetContractByIdUseCase getContractByIdUseCase;
 
-    private ContractDetailModel contractModel;
+    @SpringBean
+    private ContractModelMapper contractModelMapper;
+
+    private static final int NUMBER_OF_MONTHS = 6;
+
+    private final IModel<ContractModel> contractModel;
 
     public ContractDetailsPage(PageParameters parameters) {
         super(parameters);
-        contractModel = new ContractDetailModel(getParameterId());
+        contractModel = Model.of(contractModelMapper.mapToModel(getContractByIdUseCase.getContractById(getParameterId())));
 
         add(new ContractHighlightsPanel("highlightsPanel", contractModel));
-        add(new ContractDetailChart("comparisonChart", new ContractDetailChartModel(getParameterId(), numberOfMonths)));
+        add(new ContractDetailChart("comparisonChart", new ContractDetailChartModel(getParameterId(), NUMBER_OF_MONTHS)));
         add(new DifferenceTable("differenceTable", new DifferenceTableModel(getParameterId(), contractModel.getObject().getStartDate())));
 
-        add(new Link("editLink") {
+        add(new Link<>("editLink") {
             @Override
             public void onClick() {
                 WebPage page = new EditContractPage(createParameters(getParameterId()), ContractDetailsPage.class, getPageParameters());
                 setResponsePage(page);
             }
         });
-        add(new Link("addInvoiceLink"){
+        add(new Link<>("addInvoiceLink"){
             @Override
             public void onClick() {
                 WebPage page = new EditInvoicePage(EditInvoicePage.createNewInvoiceParameters(getParameterId()), ContractDetailsPage.class, getPageParameters());
                 setResponsePage(page);
             }
         });
-        add(new ExternalLink("showInvoiceLink", "invoices/" + contractModel.getObject().getContractId()));
-        add(new Link("showContractLink"){
+        add(new ExternalLink("showInvoiceLink", String.format("invoices/%d", contractModel.getObject().getId())));
+        add(new Link<>("showContractLink"){
             @Override
             public void onClick() {
                 setResponsePage(BudgetForContractOverviewPage.class, createParameters(getParameterId()));
             }
         });
-        Form deleteForm = new ConfirmationForm("deleteForm", this, "confirmation.delete") {
+        var deleteForm = new ConfirmationForm<>("deleteForm", this, "confirmation.delete") {
             @Override
             public void onSubmit() {
                 setResponsePage(new DeleteDialog() {
                     @Override
                     protected void onYes() {
-                        contractService.deleteContract(getParameterId());
+                        deleteContractUseCase.deleteContract(getParameterId());
                         setResponsePage(ContractOverviewPage.class);
                     }
 
@@ -92,7 +102,7 @@ public class ContractDetailsPage extends BasePage {
 
     @Override
     protected BreadcrumbsModel getBreadcrumbsModel() {
-        BreadcrumbsModel model = new BreadcrumbsModel(DashboardPage.class, ContractOverviewPage.class);
+        var model = new BreadcrumbsModel(DashboardPage.class, ContractOverviewPage.class);
         model.addBreadcrumb(ContractDetailsPage.class, getPageParameters());
         return model;
     }

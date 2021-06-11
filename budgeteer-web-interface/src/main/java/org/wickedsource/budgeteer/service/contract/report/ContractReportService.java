@@ -17,8 +17,10 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
+
+import static java.util.Map.*;
 
 @Transactional
 @Service
@@ -58,9 +60,9 @@ public class ContractReportService {
 	}
 
 	private void writeSummary(XSSFSheet sheet, List<ContractReportSummary> summary, boolean removeFlagSheet) {
-		SheetTemplate template = new SheetTemplate(ContractReportSummary.class, sheet);
-		TemplateWriter<ContractReportSummary> tw = new TemplateWriter<>(template);
-		tw.setEntries(summary);
+
+		var template = SheetTemplate.<ContractReportSummary>of(Map.of("name", ContractReportSummary::getName), sheet);
+		TemplateWriter<ContractReportSummary> tw = new TemplateWriter<>(template, summary);
 		tw.write();
 		if(removeFlagSheet) {
             tw.removeFlagSheet();
@@ -72,9 +74,7 @@ public class ContractReportService {
 		contractReportList.forEach(
 				contract -> recipients.add(SheetTemplateSerializable.getAttribute("rechnungsempfaenger", contract.getAttributes())));
 
-		List<ContractReportSummary> summary = recipients.stream().map(description -> new ContractReportSummary(description))
-				.collect(Collectors.toList());
-		return summary;
+		return recipients.stream().map(ContractReportSummary::new).collect(Collectors.toList());
 	}
 
 	private File outputfile(XSSFWorkbook wb) {
@@ -92,12 +92,12 @@ public class ContractReportService {
 	}
 
 	private void writeContractData(XSSFSheet sheet, List<ContractReportData> reportList) {
-		SheetTemplate template = new SheetTemplate(ContractReportData.class, sheet);
-		TemplateWriter<ContractReportData> tw = new TemplateWriter<>(template);
-		tw.setEntries(reportList);
+		var template = SheetTemplate.withCollection(contractReportDataFieldMappers(),
+				contractReportDataCollectionMappers(),
+				sheet);
+		TemplateWriter<ContractReportData> tw = new TemplateWriter<>(template, reportList);
 		setWarnings(reportList, tw);
 		tw.write();
-		
 	}
 
 	private void setWarnings(List<ContractReportData> list, TemplateWriter<ContractReportData> tw) {
@@ -116,18 +116,39 @@ public class ContractReportService {
 	}
 
 	private List<ContractReportData> loadContractReportData(long projectId, Date endDate) {
-		List<ContractEntity> contracts = new LinkedList<>();
-		contracts.addAll(contractRepository.findByProjectId(projectId));
+		List<ContractEntity> contracts = new LinkedList<>(contractRepository.findByProjectId(projectId));
 		return mapper.map(contracts,endDate);
 	}
 
 	private List<ContractReportData> loadMonthlyContractReportData(long projectId, Date endDate) {
-		List<ContractEntity> contracts = new LinkedList<>();
-		contracts.addAll(contractRepository.findByProjectId(projectId));
+		List<ContractEntity> contracts = new LinkedList<>(contractRepository.findByProjectId(projectId));
 		return monthlyMapper.map(contracts,endDate);
 	}
 
     private XSSFWorkbook getSheetWorkbook(long id) {
 		return templateService.getById(id).getWb();
     }
+
+
+    private Map<String, Function<ContractReportData, Object>> contractReportDataFieldMappers() {
+		return Map.ofEntries(
+				entry("id", ContractReportData::getId),
+				entry("contract", ContractReportData::getContract),
+				entry("contractId", ContractReportData::getContractId),
+				entry("from", ContractReportData::getFrom),
+				entry("until", ContractReportData::getUntil),
+				entry("budgetSpent_net", ContractReportData::getBudgetSpent_net),
+				entry("budgetLeft_net", ContractReportData::getBudgetLeft_net),
+				entry("budgetTotal_net", ContractReportData::getBudgetTotal_net),
+				entry("budgetSpent_gross", ContractReportData::getBudgetSpent_gross),
+				entry("budgetLeft_gross", ContractReportData::getBudgetLeft_gross),
+				entry("budgetTotal_gross", ContractReportData::getBudgetTotal_gross),
+				entry("taxRate", ContractReportData::getTaxRate),
+				entry("progress", ContractReportData::getProgress)
+		);
+	}
+
+	private Map<String, Function<ContractReportData, Collection<SheetTemplateSerializable>>> contractReportDataCollectionMappers() {
+		return Map.ofEntries(entry("attributes", ContractReportData::getAttributes));
+	}
 }

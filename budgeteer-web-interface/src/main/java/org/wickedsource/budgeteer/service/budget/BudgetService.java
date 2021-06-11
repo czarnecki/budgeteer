@@ -230,9 +230,9 @@ public class BudgetService {
      * @return data object containing the data that can be changed in the UI.
      */
     @PreAuthorize("canReadBudget(#budgetId)")
-    public EditBudgetData loadBudgetToEdit(long budgetId) {
+    public EditBudgetModel loadBudgetToEdit(long budgetId) {
         BudgetEntity budget = budgetRepository.findById(budgetId).orElseThrow(() -> new UnknownEntityException(BudgetEntity.class, budgetId));
-        EditBudgetData data = new EditBudgetData();
+        EditBudgetModel data = new EditBudgetModel();
         data.setId(budget.getId());
         data.setDescription(budget.getDescription());
         data.setTotal(budget.getTotal());
@@ -252,7 +252,7 @@ public class BudgetService {
      * @param data the data to store in the database
      * @return the
      */
-    public long saveBudget(EditBudgetData data) {
+    public long saveBudget(EditBudgetModel data) {
 
         BudgetEntity budget = new BudgetEntity();
         if (data.getId() != 0) {
@@ -285,7 +285,7 @@ public class BudgetService {
         if (data.getContract() == null) {
             budget.setContract(null);
         } else {
-            ContractEntity contractEntity = contractRepository.findById(data.getContract().getContractId()).orElseThrow(RuntimeException::new);
+            ContractEntity contractEntity = contractRepository.findById(data.getContract().getId()).orElseThrow(RuntimeException::new);
             budget.setContract(contractEntity);
         }
         budgetRepository.save(budget);

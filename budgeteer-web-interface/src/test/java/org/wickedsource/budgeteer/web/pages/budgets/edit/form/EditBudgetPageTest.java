@@ -7,18 +7,11 @@ import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.wickedsource.budgeteer.persistence.budget.BudgetEntity;
-import org.wickedsource.budgeteer.service.UnknownEntityException;
 import org.wickedsource.budgeteer.service.budget.BudgetService;
-import org.wickedsource.budgeteer.service.budget.EditBudgetData;
+import org.wickedsource.budgeteer.service.budget.EditBudgetModel;
 import org.wickedsource.budgeteer.web.AbstractWebTestTemplate;
 import org.wickedsource.budgeteer.web.pages.budgets.edit.EditBudgetPage;
 import org.wickedsource.budgeteer.web.pages.budgets.overview.BudgetsOverviewPage;
-import org.wickedsource.budgeteer.web.pages.dashboard.DashboardPage;
-import org.wickedsource.budgeteer.web.pages.person.edit.EditPersonPage;
-import org.wickedsource.budgeteer.web.pages.person.overview.PeopleOverviewPage;
-import org.wickedsource.budgeteer.web.pages.templates.TemplatesPage;
-import org.wickedsource.budgeteer.web.pages.templates.edit.EditTemplatePage;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -65,7 +58,7 @@ public class EditBudgetPageTest extends AbstractWebTestTemplate {
     @Test
     void onSubmitCallsBudgetService() {
         when(budgetServiceMock.saveBudget(any())).thenReturn(0L);
-        when(budgetServiceMock.loadBudgetToEdit(anyLong())).thenReturn(new EditBudgetData(1));
+        when(budgetServiceMock.loadBudgetToEdit(anyLong())).thenReturn(new EditBudgetModel(1));
         FormTester formTester = getTester().newFormTester("form");
         formTester.setValue("name","TestBudget");
         formTester.setValue("importKey","einImportKey"); // import key

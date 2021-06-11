@@ -1,25 +1,36 @@
 package org.wickedsource.budgeteer.service.contract.report;
 
 import de.adesso.budgeteer.core.common.DateRange;
+import org.joda.money.CurrencyUnit;
+import org.joda.money.Money;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.wickedsource.budgeteer.MoneyUtil;
+import org.wickedsource.budgeteer.SheetTemplate.SheetTemplateSerializable;
 import org.wickedsource.budgeteer.persistence.contract.ContractEntity;
 import org.wickedsource.budgeteer.persistence.contract.ContractFieldEntity;
 import org.wickedsource.budgeteer.persistence.contract.ContractRepository;
 import org.wickedsource.budgeteer.persistence.contract.ContractStatisticBean;
+import org.wickedsource.budgeteer.persistence.invoice.InvoiceEntity;
+import org.wickedsource.budgeteer.persistence.invoice.InvoiceRepository;
+import org.wickedsource.budgeteer.persistence.record.WorkRecordEntity;
 import org.wickedsource.budgeteer.service.contract.DynamicAttributeField;
 
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Component
 public class ContractReportDataMapper {
 
 	@Autowired
 	private ContractRepository contractRepository;
-	
+
+	@Autowired
+	private InvoiceRepository invoiceRepository;
+
 	public ContractReportData map(ContractEntity contract, Date endDate) {
 		LocalDate end = endDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
 		ContractStatisticBean statistics = contractRepository.getContractStatisticAggregatedByMonthAndYear(contract.getId(), end.getMonthValue()-1, end.getYear());
@@ -33,7 +44,7 @@ public class ContractReportDataMapper {
         for(ContractFieldEntity fieldEntity : contract.getContractFields()){
             contractAttributes.put(fieldEntity.getField().getFieldName(), new DynamicAttributeField(fieldEntity.getField().getFieldName(), fieldEntity.getValue()));
         }
-		report.setAttributes(new ArrayList<DynamicAttributeField>(contractAttributes.values()));
+		report.setAttributes(new ArrayList<>(contractAttributes.values()));
 		report.setId(contract.getId());
 		report.setTaxRate(contract.getTaxRate() != null ? contract.getTaxRate().doubleValue() / 100 : 0);
 		report.setFrom(dateRange.getStartDate());

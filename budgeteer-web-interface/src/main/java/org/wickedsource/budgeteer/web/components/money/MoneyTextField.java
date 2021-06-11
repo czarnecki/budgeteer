@@ -10,6 +10,7 @@ public class MoneyTextField extends TextField<Money> {
 
     public MoneyTextField(String id, IModel<Money> model) {
         super(id, model);
+        setType(Money.class);
     }
 
     @Override

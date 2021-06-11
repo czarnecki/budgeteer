@@ -8,7 +8,7 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.apache.wicket.util.string.StringValue;
 import org.wickedsource.budgeteer.service.budget.BudgetService;
-import org.wickedsource.budgeteer.service.budget.EditBudgetData;
+import org.wickedsource.budgeteer.service.budget.EditBudgetModel;
 import org.wickedsource.budgeteer.web.Mount;
 import org.wickedsource.budgeteer.web.pages.base.dialogpage.DialogPageWithBacklink;
 import org.wickedsource.budgeteer.web.pages.budgets.edit.form.EditBudgetForm;
@@ -31,7 +31,7 @@ public class EditBudgetPage extends DialogPageWithBacklink {
     public EditBudgetPage(Class<? extends WebPage> backlinkPage, PageParameters backlinkParameters) {
         super(backlinkPage, backlinkParameters);
         isEditing = false;
-        Form<EditBudgetData> form = new EditBudgetForm("form");
+        Form<EditBudgetModel> form = new EditBudgetForm("form");
         addComponents(form);
     }
 
@@ -43,8 +43,8 @@ public class EditBudgetPage extends DialogPageWithBacklink {
     public EditBudgetPage(PageParameters parameters, Class<? extends WebPage> backlinkPage, PageParameters backlinkParameters, boolean isEditingNewBudget) {
         super(parameters, backlinkPage, backlinkParameters);
         isEditing = true;
-        EditBudgetData budgetData = service.loadBudgetToEdit(getBudgetId());
-        Form<EditBudgetData> form = new EditBudgetForm("form", model(from(budgetData)), isEditingNewBudget);
+        EditBudgetModel budgetData = service.loadBudgetToEdit(getBudgetId());
+        Form<EditBudgetModel> form = new EditBudgetForm("form", model(from(budgetData)), isEditingNewBudget);
         addComponents(form);
     }
 
@@ -57,17 +57,17 @@ public class EditBudgetPage extends DialogPageWithBacklink {
         super(parameters, BudgetsOverviewPage.class, new PageParameters());
         if(getBudgetId() == 0){
             isEditing = false;
-            Form<EditBudgetData> form = new EditBudgetForm("form");
+            Form<EditBudgetModel> form = new EditBudgetForm("form");
             addComponents(form);
         }else{
             isEditing = true;
-            EditBudgetData budgetData = service.loadBudgetToEdit(getBudgetId());
-            Form<EditBudgetData> form = new EditBudgetForm("form", model(from(budgetData)), false);
+            EditBudgetModel budgetData = service.loadBudgetToEdit(getBudgetId());
+            Form<EditBudgetModel> form = new EditBudgetForm("form", model(from(budgetData)), false);
             addComponents(form);
         }
     }
 
-    private void addComponents(Form<EditBudgetData> form) {
+    private void addComponents(Form<EditBudgetModel> form) {
         add(createBacklink("cancelButton1"));
         form.add(createBacklink("cancelButton2"));
         if(isEditing) {

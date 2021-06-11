@@ -44,7 +44,7 @@ public class ProjectEntity implements Serializable {
      * List of possible dynamic fields that can be used by contracts of this project
      */
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "project", fetch = FetchType.LAZY)
-    private Set<ProjectContractField> contractFields;
+    private List<ProjectContractField> contractFields;
 
     @Override
     public String toString() {

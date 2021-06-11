@@ -1,5 +1,6 @@
 package org.wickedsource.budgeteer.web.pages.contract.overview;
 
+import de.adesso.budgeteer.core.project.service.ProjectHasContractsService;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -10,7 +11,6 @@ import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.wickedsource.budgeteer.service.contract.ContractService;
 import org.wickedsource.budgeteer.web.BudgeteerSession;
 import org.wickedsource.budgeteer.web.Mount;
 import org.wickedsource.budgeteer.web.components.tax.TaxSwitchLabelModel;
@@ -26,7 +26,7 @@ import org.wickedsource.budgeteer.web.pages.dashboard.DashboardPage;
 public class ContractOverviewPage extends BasePage{
 
     @SpringBean
-    private ContractService contractService;
+    private ProjectHasContractsService projectHasContractsService;
 
     private ContractOverviewTable table;
 
@@ -36,7 +36,7 @@ public class ContractOverviewPage extends BasePage{
         table = new ContractOverviewTable("contractTable");
 
         add(table);
-        add(new Link("createContractLink") {
+        add(new Link<>("createContractLink") {
             @Override
             public void onClick() {
                 WebPage page = new EditContractPage(ContractOverviewPage.class, getPageParameters());
@@ -51,7 +51,7 @@ public class ContractOverviewPage extends BasePage{
 
 
     private Link createNetGrossLink(String string) {
-        Link link = new Link(string) {
+        Link link = new Link<>(string) {
             @Override
             public void onClick() {
                 if (BudgeteerSession.get().isTaxEnabled()) {
@@ -69,14 +69,14 @@ public class ContractOverviewPage extends BasePage{
     }
 
     private Component createReportLink(String string) {
-        Link link = new Link(string) {
+        Link link = new Link<>(string) {
             @Override
             public void onClick() {
                 setResponsePage(new ContractReportDialog(ContractOverviewPage.class, new PageParameters()));
             }
         };
 
-        if (!contractService.projectHasContracts(BudgeteerSession.get().getProjectId())) {
+        if (!projectHasContractsService.projectHasContracts(BudgeteerSession.get().getProjectId())) {
             link.setEnabled(false);
             link.add(new AttributeAppender("style", "cursor: not-allowed;", " "));
             link.add(new AttributeModifier("title", ContractOverviewPage.this.getString("links.contract.label.no.contract")));
