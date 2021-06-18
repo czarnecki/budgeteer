@@ -3,7 +3,6 @@ package org.wickedsource.budgeteer.web.pages.person.overview;
 import org.apache.wicket.util.tester.WicketTester;
 import org.junit.jupiter.api.Test;
 import org.wickedsource.budgeteer.web.AbstractWebTestTemplate;
-import org.wickedsource.budgeteer.web.pages.person.overview.table.PeopleModel;
 import org.wickedsource.budgeteer.web.pages.person.overview.table.PeopleOverviewTable;
 
 public class PeopleOverviewTableTest extends AbstractWebTestTemplate {
