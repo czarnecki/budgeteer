@@ -1,15 +1,19 @@
 package de.adesso.budgeteer.core.person.domain;
 
-import lombok.Value;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import org.joda.money.Money;
 
 import java.util.Date;
 
-@Value
+@Getter
+@EqualsAndHashCode
+@RequiredArgsConstructor
 public class Person {
-    long id;
-    String name;
-    Date lastBooked;
-    Money averageDailyRate;
-    Money defaultDailyRate;
+    private final long id;
+    private final String name;
+    private final Date lastBooked;
+    private final Money averageDailyRate;
+    private final Money defaultDailyRate;
 }
