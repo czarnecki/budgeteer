@@ -26,4 +26,9 @@ public class BudgetTagEntity {
         this.tag = tag;
     }
 
+    public BudgetTagEntity(String tag, BudgetEntity budget) {
+        this.tag = tag;
+        this.budget = budget;
+    }
+
 }
