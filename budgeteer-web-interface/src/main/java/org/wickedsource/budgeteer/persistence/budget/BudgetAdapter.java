@@ -10,6 +10,7 @@ import org.wickedsource.budgeteer.persistence.project.ProjectRepository;
 
 import javax.transaction.Transactional;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Component
@@ -19,7 +20,10 @@ public class BudgetAdapter implements
         GetBudgetReferencesForProjectPort,
         CreateBudgetEntityPort,
         BudgetImportKeyExistsInProjectPort,
-        BudgetNameExistsInProjectPort {
+        BudgetNameExistsInProjectPort,
+        UpdateBudgetEntityPort,
+        BudgetHasImportKeyOrUniqueInProjectPort,
+        BudgetHasNameOrUniqueInProjectPort {
 
     private final BudgetRepository budgetRepository;
     private final ProjectRepository projectRepository;
@@ -60,6 +64,36 @@ public class BudgetAdapter implements
     @Override
     public boolean budgetNameExistsInProject(long projectId, String name) {
         return budgetRepository.existsByNameAndProjectId(name, projectId);
+    }
+
+    @Override
+    @Transactional
+    public void updateBudgetEntity(UpdateBudgetEntityCommand command) {
+        var budgetEntity = budgetRepository.findById(command.getBudgetId()).orElseThrow();
+        var contractEntity = command.getContractId()
+                .flatMap(contractRepository::findById)
+                .orElse(null);
+        budgetEntity.setContract(contractEntity);
+        budgetEntity.setName(command.getName());
+        budgetEntity.setDescription(command.getDescription());
+        budgetEntity.setImportKey(command.getImportKey());
+        budgetEntity.setTotal(command.getTotal());
+        budgetEntity.setLimit(command.getLimit());
+        budgetEntity.getTags().clear();
+        budgetEntity.getTags().addAll(mapToTagEntities(command.getTags(), budgetEntity));
+        budgetRepository.save(budgetEntity);
+    }
+
+    @Override
+    public boolean budgetHasImportKeyOrUniqueInProject(long budgetId, String importKey) {
+        return budgetRepository.existsByIdAndImportKey(budgetId, importKey)
+                || !budgetRepository.importKeyExistsInProjectByBudgetId(budgetId, importKey);
+    }
+
+    @Override
+    public boolean budgetHasNameOrUniqueInProject(long budgetId, String name) {
+        return budgetRepository.existsByIdAndName(budgetId, name)
+                || !budgetRepository.nameExistsInProjectByBudgetId(budgetId, name);
     }
 
     private List<BudgetTagEntity> mapToTagEntities(List<String> tags, BudgetEntity budgetEntity) {

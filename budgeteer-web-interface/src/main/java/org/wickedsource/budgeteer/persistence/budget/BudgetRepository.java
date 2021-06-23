@@ -16,6 +16,22 @@ public interface BudgetRepository extends CrudRepository<BudgetEntity, Long> {
 
     boolean existsByNameAndProjectId(String name, long projectId);
 
+    @Query("SELECT CASE WHEN (budget IS NOT NULL) THEN true ELSE false END " +
+            "FROM BudgetEntity budget " +
+            "WHERE budget.id = (SELECT budget.project.id FROM BudgetEntity budget where budget.id = :budgetId) " +
+            "AND budget.name = :name")
+    boolean nameExistsInProjectByBudgetId(@Param("budgetId") long budgetId, @Param("name") String name);
+
+    @Query("SELECT CASE WHEN (budget IS NOT NULL) THEN true ELSE false END " +
+            "FROM BudgetEntity budget " +
+            "WHERE budget.id = (SELECT budget.project.id FROM BudgetEntity budget where budget.id = :budgetId) " +
+            "AND budget.importKey = :importKey")
+    boolean importKeyExistsInProjectByBudgetId(@Param("budgetId") long budgetId, @Param("importKey") String importKey);
+
+    boolean existsByIdAndName(long id, String name);
+
+    boolean existsByIdAndImportKey(long id, String importKey);
+
     List<BudgetReference> getAllByProjectId(@Param("projectId") long projectId);
 
     @Modifying
