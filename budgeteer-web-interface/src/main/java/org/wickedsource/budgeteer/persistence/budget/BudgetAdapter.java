@@ -2,9 +2,10 @@ package org.wickedsource.budgeteer.persistence.budget;
 
 import de.adesso.budgeteer.core.budget.domain.Budget;
 import de.adesso.budgeteer.core.budget.domain.BudgetReference;
+import de.adesso.budgeteer.core.budget.domain.BudgetSummary;
 import de.adesso.budgeteer.core.budget.port.out.*;
+import de.adesso.budgeteer.core.common.DateRange;
 import lombok.RequiredArgsConstructor;
-import org.hibernate.sql.Delete;
 import org.springframework.stereotype.Component;
 import org.wickedsource.budgeteer.persistence.contract.ContractRepository;
 import org.wickedsource.budgeteer.persistence.project.ProjectRepository;
@@ -25,7 +26,8 @@ public class BudgetAdapter implements
         UpdateBudgetEntityPort,
         BudgetHasImportKeyOrUniqueInProjectPort,
         BudgetHasNameOrUniqueInProjectPort,
-        DeleteBudgetPort {
+        DeleteBudgetPort,
+        GetBudgetSummariesForProjectPort {
 
     private final BudgetRepository budgetRepository;
     private final ProjectRepository projectRepository;
@@ -101,6 +103,11 @@ public class BudgetAdapter implements
     @Override
     public void deleteBudget(long budgetId) {
         budgetRepository.deleteById(budgetId);
+    }
+
+    @Override
+    public List<BudgetSummary> getBudgetSummariesForProject(long projectId, DateRange range) {
+        return budgetMapper.mapToBudgetSummary(budgetRepository.findByProjectIdOrderByNameAsc(projectId), range);
     }
 
     private List<BudgetTagEntity> mapToTagEntities(List<String> tags, BudgetEntity budgetEntity) {
