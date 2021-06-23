@@ -4,6 +4,7 @@ import de.adesso.budgeteer.core.budget.domain.Budget;
 import de.adesso.budgeteer.core.budget.domain.BudgetReference;
 import de.adesso.budgeteer.core.budget.port.out.*;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.sql.Delete;
 import org.springframework.stereotype.Component;
 import org.wickedsource.budgeteer.persistence.contract.ContractRepository;
 import org.wickedsource.budgeteer.persistence.project.ProjectRepository;
@@ -23,7 +24,8 @@ public class BudgetAdapter implements
         BudgetNameExistsInProjectPort,
         UpdateBudgetEntityPort,
         BudgetHasImportKeyOrUniqueInProjectPort,
-        BudgetHasNameOrUniqueInProjectPort {
+        BudgetHasNameOrUniqueInProjectPort,
+        DeleteBudgetPort {
 
     private final BudgetRepository budgetRepository;
     private final ProjectRepository projectRepository;
@@ -94,6 +96,11 @@ public class BudgetAdapter implements
     public boolean budgetHasNameOrUniqueInProject(long budgetId, String name) {
         return budgetRepository.existsByIdAndName(budgetId, name)
                 || !budgetRepository.nameExistsInProjectByBudgetId(budgetId, name);
+    }
+
+    @Override
+    public void deleteBudget(long budgetId) {
+        budgetRepository.deleteById(budgetId);
     }
 
     private List<BudgetTagEntity> mapToTagEntities(List<String> tags, BudgetEntity budgetEntity) {
