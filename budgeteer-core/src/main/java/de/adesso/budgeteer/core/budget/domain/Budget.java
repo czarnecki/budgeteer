@@ -9,6 +9,7 @@ import java.util.List;
 public class Budget {
     long id;
     String name;
+    String importKey;
     String description;
     String note;
     List<String> tags;

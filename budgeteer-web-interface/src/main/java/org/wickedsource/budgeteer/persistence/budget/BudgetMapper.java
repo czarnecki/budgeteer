@@ -16,6 +16,7 @@ public class BudgetMapper {
     public Budget mapToBudget(BudgetEntity budgetEntity) {
         return new Budget(budgetEntity.getId(),
                 budgetEntity.getName(),
+                budgetEntity.getImportKey(),
                 budgetEntity.getDescription(),
                 budgetEntity.getNote(),
                 budgetEntity.getTags().stream().map(BudgetTagEntity::getTag).collect(Collectors.toList()),
