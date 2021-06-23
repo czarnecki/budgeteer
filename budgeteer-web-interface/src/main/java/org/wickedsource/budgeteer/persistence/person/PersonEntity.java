@@ -46,7 +46,7 @@ public class PersonEntity {
 
     public Money averageDailyRate() {
         return getWorkRecords().stream()
-                .map(WorkRecordEntity::getBudgetBurned)
+                .map(WorkRecordEntity::getActualRate)
                 .reduce(Money.of(CurrencyUnit.EUR, 0), Money::plus)
                 .dividedBy(getWorkRecords().size(), RoundingMode.HALF_DOWN);
     }

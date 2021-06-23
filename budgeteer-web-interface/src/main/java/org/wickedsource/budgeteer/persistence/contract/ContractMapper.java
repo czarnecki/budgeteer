@@ -25,7 +25,7 @@ public class ContractMapper {
         var budgetSpent = contractEntity.getBudgets().stream()
                 .map(BudgetEntity::getWorkRecords)
                 .flatMap(List::stream)
-                .map(WorkRecordEntity::getBudgetBurned)
+                .map(WorkRecordEntity::getActualRate)
                 .reduce(Money.of(CurrencyUnit.EUR, 0), Money::plus);
         var budgetLeft = contractEntity.getBudget().minus(budgetSpent);
 
@@ -61,7 +61,7 @@ public class ContractMapper {
         var budgetBurnedUpToYearAndMonth = contractEntity.getBudgets().stream()
                 .flatMap(budget -> budget.getWorkRecords().stream()
                         .filter(workRecord -> inYearAndMonthRange(workRecord.getYear(), workRecord.getMonth(), from, until)))
-                .map(WorkRecordEntity::getBudgetBurned)
+                .map(WorkRecordEntity::getActualRate)
                 .reduce(Money.of(CurrencyUnit.EUR, 0), Money::plus);
         var budgetLeftUpToYearAndMonth = contractEntity.getBudget().minus(budgetBurnedUpToYearAndMonth);
         var invoicedUpToYearAndMonth = contractEntity.getInvoices()

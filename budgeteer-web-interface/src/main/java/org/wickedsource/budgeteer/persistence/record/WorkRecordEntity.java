@@ -1,12 +1,9 @@
 package org.wickedsource.budgeteer.persistence.record;
 
-import org.joda.money.Money;
-
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Index;
 import javax.persistence.Table;
-import java.math.RoundingMode;
 
 @Entity
 @Table(name = "WORK_RECORD", indexes = {
@@ -24,14 +21,6 @@ public class WorkRecordEntity extends RecordEntity {
 
     public void setEditedManually(Boolean editedManually) {
         this.editedManually = editedManually;
-    }
-
-    public Money getBudgetBurned() {
-        return getDailyRate().multipliedBy(getMinutes() / (60.0 * 8.0), RoundingMode.HALF_DOWN);
-    }
-
-    public double getHours() {
-        return getMinutes() / 60.0;
     }
 
 }
