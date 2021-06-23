@@ -1,5 +1,6 @@
 package org.wickedsource.budgeteer.persistence.budget;
 
+import de.adesso.budgeteer.core.budget.domain.BudgetReference;
 import org.joda.money.Money;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -14,6 +15,8 @@ public interface BudgetRepository extends CrudRepository<BudgetEntity, Long> {
     boolean existsByImportKeyAndProjectId(String importKey, long projectId);
 
     boolean existsByNameAndProjectId(String name, long projectId);
+
+    List<BudgetReference> getAllByProjectId(@Param("projectId") long projectId);
 
     @Modifying
     @Query("UPDATE BudgetEntity budget SET budget.contract = null WHERE budget.contract.id = :contractId")

@@ -1,6 +1,8 @@
 package org.wickedsource.budgeteer.persistence.budget;
 
 import de.adesso.budgeteer.core.budget.domain.Budget;
+import de.adesso.budgeteer.core.budget.domain.BudgetReference;
+import de.adesso.budgeteer.core.budget.port.out.GetBudgetReferencesForProjectPort;
 import de.adesso.budgeteer.core.budget.port.out.GetBudgetsInProjectPort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -10,7 +12,9 @@ import java.util.List;
 
 @Component
 @RequiredArgsConstructor
-public class BudgetAdapter implements GetBudgetsInProjectPort {
+public class BudgetAdapter implements
+        GetBudgetsInProjectPort,
+        GetBudgetReferencesForProjectPort {
 
     private final BudgetRepository budgetRepository;
     private final BudgetMapper budgetMapper;
@@ -20,5 +24,10 @@ public class BudgetAdapter implements GetBudgetsInProjectPort {
     public List<Budget> getBudgetsInProject(long projectId) {
         var budgetEntities = budgetRepository.findByProjectIdOrderByNameAsc(projectId);
         return budgetMapper.mapToBudget(budgetEntities);
+    }
+
+    @Override
+    public List<BudgetReference> getBudgetReferencesForProject(long projectId) {
+        return budgetRepository.getAllByProjectId(projectId);
     }
 }
