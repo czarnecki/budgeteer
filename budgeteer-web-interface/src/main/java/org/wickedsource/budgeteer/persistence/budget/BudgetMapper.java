@@ -27,7 +27,8 @@ public class BudgetMapper {
                 MoneyUtil.sum(budgetEntity.getPlanRecords(), RecordEntity::getActualRate, CurrencyUnit.EUR),
                 budgetEntity.getLimit(),
                 budgetEntity.getContract().getId(),
-                budgetEntity.getContract().getName()
+                budgetEntity.getContract().getName(),
+                budgetEntity.getContract().getTaxRate()
         );
     }
 
