@@ -1,18 +1,18 @@
 package org.wickedsource.budgeteer.web.pages.budgets.details;
 
+import de.adesso.budgeteer.core.budget.port.in.GetBudgetUseCase;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.SubmitLink;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.wickedsource.budgeteer.service.budget.BudgetDetailData;
 import org.wickedsource.budgeteer.service.budget.BudgetService;
 import org.wickedsource.budgeteer.web.Mount;
 import org.wickedsource.budgeteer.web.components.confirm.ConfirmationForm;
@@ -27,6 +27,8 @@ import org.wickedsource.budgeteer.web.pages.budgets.details.highlights.BudgetHig
 import org.wickedsource.budgeteer.web.pages.budgets.details.highlights.BudgetHighlightsPanel;
 import org.wickedsource.budgeteer.web.pages.budgets.edit.EditBudgetPage;
 import org.wickedsource.budgeteer.web.pages.budgets.hours.BudgetHoursPage;
+import org.wickedsource.budgeteer.web.pages.budgets.models.BudgetModel;
+import org.wickedsource.budgeteer.web.pages.budgets.models.BudgetModelMapper;
 import org.wickedsource.budgeteer.web.pages.budgets.monthreport.single.SingleBudgetMonthReportPage;
 import org.wickedsource.budgeteer.web.pages.budgets.notes.BudgetNotesPage;
 import org.wickedsource.budgeteer.web.pages.budgets.overview.BudgetsOverviewPage;
@@ -40,21 +42,27 @@ public class BudgetDetailsPage extends BasePage {
     @SpringBean
     private BudgetService budgetService;
 
-    private IModel<BudgetDetailData> model;
+    @SpringBean
+    private GetBudgetUseCase getBudgetUseCase;
+
+    @SpringBean
+    private BudgetModelMapper budgetModelMapper;
+
+    private final IModel<BudgetModel> model;
 
     public BudgetDetailsPage(PageParameters parameters) {
         super(parameters);
-        model = () -> budgetService.loadBudgetDetailData(getParameterId());
-        add(new BudgetHighlightsPanel("highlightsPanel", new BudgetHighlightsModel(getParameterId())));
+        this.model = Model.of(budgetModelMapper.toBudgetModel(getBudgetUseCase.getBudget(getParameterId())));
+        add(new BudgetHighlightsPanel("highlightsPanel", model));
         add(new PeopleDistributionChart("distributionChart", new PeopleDistributionChartModel(getParameterId())));
         add(new BookmarkablePageLink<SingleBudgetWeekReportPage>("weekReportLink", SingleBudgetWeekReportPage.class, createParameters(getParameterId())));
         add(new BookmarkablePageLink<SingleBudgetMonthReportPage>("monthReportLink", SingleBudgetMonthReportPage.class, createParameters(getParameterId())));
         addContractLinks();
         add(new BookmarkablePageLink<BudgetHoursPage>("hoursLink", BudgetHoursPage.class, createParameters(getParameterId())));
         add(new BookmarkablePageLink<BudgetNotesPage>("notesLink", BudgetNotesPage.class, createParameters(getParameterId())));
-        add(createEditLink("editLink"));
+        add(createEditLink());
 
-        Form deleteForm = new ConfirmationForm("deleteForm", this, "confirmation.delete") {
+        var deleteForm = new ConfirmationForm<>("deleteForm", this, "confirmation.delete") {
             @Override
             public void onSubmit() {
                 setResponsePage(new DeleteDialog() {
@@ -76,7 +84,7 @@ public class BudgetDetailsPage extends BasePage {
                 });
             }
         };
-        if(this.model.getObject().getContractName() != null){
+        if (model.getObject().getContractName() != null) {
             deleteForm.setEnabled(false);
             deleteForm.add(new AttributeAppender("style", "cursor: not-allowed;", " "));
             deleteForm.add(new AttributeModifier("title", getString("contract.still.exist")));
@@ -86,13 +94,13 @@ public class BudgetDetailsPage extends BasePage {
     }
 
     public static PageParameters createParameters(long budgetId) {
-        PageParameters parameters = new PageParameters();
+        var parameters = new PageParameters();
         parameters.add("id", budgetId);
         return parameters;
     }
 
     private void addContractLinks() {
-        BookmarkablePageLink<ContractDetailsPage> contractLinkName = new BookmarkablePageLink<ContractDetailsPage>("contractLink", ContractDetailsPage.class, ContractDetailsPage.createParameters(model.getObject().getContractId())) {
+        BookmarkablePageLink<ContractDetailsPage> contractLinkName = new BookmarkablePageLink<>("contractLink", ContractDetailsPage.class, ContractDetailsPage.createParameters(model.getObject().getContractId())) {
             @Override
             protected void onConfigure() {
                 super.onConfigure();
@@ -103,14 +111,12 @@ public class BudgetDetailsPage extends BasePage {
                 }
             }
         };
-        contractLinkName.add(new Label("contractName", () -> StringUtils.isBlank(model.getObject().getContractName()) ? getString("links.contract.label.no.contract") : model.getObject().getContractName())
-        );
-
+        contractLinkName.add(new Label("contractName", model.map(BudgetModel::getContractName).filter(StringUtils::isBlank).orElse(getString("links.contract.label.no.contract"))));
         add(contractLinkName);
     }
 
-    private Link createEditLink(String id) {
-        return new Link(id) {
+    private Link<Void> createEditLink() {
+        return new Link<>("editLink") {
             @Override
             public void onClick() {
                 WebPage page = new EditBudgetPage(BasePage.createParameters(getParameterId()), BudgetDetailsPage.class, getPageParameters(), false);
@@ -121,9 +127,9 @@ public class BudgetDetailsPage extends BasePage {
 
     @Override
     protected BreadcrumbsModel getBreadcrumbsModel() {
-        BreadcrumbsModel model = new BreadcrumbsModel(DashboardPage.class, BudgetsOverviewPage.class);
-        model.addBreadcrumb(new Breadcrumb(BudgetDetailsPage.class, getPageParameters(), new BudgetNameModel(getParameterId())));
-        return model;
+        var breadcrumbsModel = new BreadcrumbsModel(DashboardPage.class, BudgetsOverviewPage.class);
+        breadcrumbsModel.addBreadcrumb(new Breadcrumb(BudgetDetailsPage.class, getPageParameters(), new BudgetNameModel(getParameterId())));
+        return breadcrumbsModel;
     }
 
     @Override
