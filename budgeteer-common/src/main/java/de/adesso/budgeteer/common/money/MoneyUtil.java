@@ -1,4 +1,4 @@
-package money;
+package de.adesso.budgeteer.common.money;
 
 import org.joda.money.CurrencyUnit;
 import org.joda.money.Money;

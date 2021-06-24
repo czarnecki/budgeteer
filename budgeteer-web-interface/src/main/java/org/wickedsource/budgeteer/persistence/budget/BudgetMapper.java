@@ -1,9 +1,9 @@
 package org.wickedsource.budgeteer.persistence.budget;
 
+import de.adesso.budgeteer.common.money.MoneyUtil;
 import de.adesso.budgeteer.core.budget.domain.Budget;
 import de.adesso.budgeteer.core.budget.domain.BudgetSummary;
 import de.adesso.budgeteer.core.common.DateRange;
-import money.MoneyUtil;
 import org.joda.money.CurrencyUnit;
 import org.joda.money.Money;
 import org.springframework.stereotype.Component;
