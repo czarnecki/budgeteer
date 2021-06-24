@@ -5,12 +5,14 @@ import de.adesso.budgeteer.core.budget.domain.BudgetSummary;
 import de.adesso.budgeteer.core.common.DateRange;
 import money.MoneyUtil;
 import org.joda.money.CurrencyUnit;
+import org.joda.money.Money;
 import org.springframework.stereotype.Component;
 import org.wickedsource.budgeteer.persistence.contract.ContractFieldEntity;
 import org.wickedsource.budgeteer.persistence.record.RecordEntity;
 import org.wickedsource.budgeteer.persistence.record.WorkRecordEntity;
 import org.wickedsource.budgeteer.service.DateUtil;
 
+import java.math.BigDecimal;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -19,6 +21,7 @@ import java.util.stream.Collectors;
 @Component
 public class BudgetMapper {
     public Budget mapToBudget(BudgetEntity budgetEntity) {
+        var contractEntity = budgetEntity.getContract();
         return new Budget(budgetEntity.getId(),
                 budgetEntity.getName(),
                 budgetEntity.getImportKey(),
@@ -30,10 +33,10 @@ public class BudgetMapper {
                 budgetEntity.getWorkRecords().stream().max(Comparator.comparing(RecordEntity::getDate)).map(RecordEntity::getActualRate).orElse(null),
                 MoneyUtil.average(budgetEntity.getWorkRecords(), WorkRecordEntity::getActualRate, CurrencyUnit.EUR),
                 MoneyUtil.sum(budgetEntity.getPlanRecords(), RecordEntity::getActualRate, CurrencyUnit.EUR),
-                budgetEntity.getLimit(),
-                budgetEntity.getContract().getId(),
-                budgetEntity.getContract().getName(),
-                budgetEntity.getContract().getTaxRate()
+                budgetEntity.getLimit() == null ? Money.of(CurrencyUnit.EUR, 0) : budgetEntity.getLimit(),
+                contractEntity == null ? 0 : contractEntity.getId(),
+                contractEntity == null ? null : contractEntity.getName(),
+                contractEntity == null ? BigDecimal.ZERO : contractEntity.getTaxRate()
         );
     }
 
