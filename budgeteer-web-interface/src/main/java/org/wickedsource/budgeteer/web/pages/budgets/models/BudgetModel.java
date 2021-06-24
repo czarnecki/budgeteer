@@ -26,6 +26,7 @@ public class BudgetModel implements Serializable {
     private Money unplanned;
     private Money unplannedGross;
     private Money averageDailyRate;
+    private double progress;
     private Money limit;
     private long contractId;
     private String contractName;

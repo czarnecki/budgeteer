@@ -4,7 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.wickedsource.budgeteer.MoneyUtil;
 import org.wickedsource.budgeteer.persistence.record.*;
-import org.wickedsource.budgeteer.service.budget.BudgetTagFilter;
+import org.wickedsource.budgeteer.web.pages.budgets.models.BudgetTagFilterModel;
 
 import java.util.List;
 
@@ -20,7 +20,7 @@ public class MonthlyStats {
         sumPlanStats();
     }
 
-    public MonthlyStats(BudgetTagFilter budgetFilter, WorkRecordRepository workRecordRepository, PlanRecordRepository planRecordRepository) {
+    public MonthlyStats(BudgetTagFilterModel budgetFilter, WorkRecordRepository workRecordRepository, PlanRecordRepository planRecordRepository) {
         if (budgetFilter.getSelectedTags().isEmpty()) {
             workStats = workRecordRepository.aggregateByMonthAndPersonForBudgetsWithTax(budgetFilter.getProjectId());
             planStats = planRecordRepository.aggregateByMonthForBudgetsWithTax(budgetFilter.getProjectId());

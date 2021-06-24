@@ -10,7 +10,7 @@ import org.wickedsource.budgeteer.persistence.record.*;
 import org.wickedsource.budgeteer.service.DateProvider;
 import org.wickedsource.budgeteer.service.DateUtil;
 import org.wickedsource.budgeteer.service.ServiceTestTemplate;
-import org.wickedsource.budgeteer.service.budget.BudgetTagFilter;
+import org.wickedsource.budgeteer.web.pages.budgets.models.BudgetTagFilterModel;
 
 import java.math.BigDecimal;
 import java.text.DateFormat;
@@ -333,7 +333,7 @@ class StatisticsServiceTest extends ServiceTestTemplate {
         when(dateProvider.currentDate()).thenReturn(format.parse("29.01.2015"));
         when(workRecordRepository.aggregateByWeekAndPersonForBudgets(anyLong(), anyList(), any(Date.class))).thenReturn(createLast5WeeksForBudget());
         when(planRecordRepository.aggregateByWeekForBudgets(anyLong(), anyList(), any(Date.class))).thenReturn(createLast5Weeks());
-        TargetAndActual targetAndActual = service.getWeekStatsForBudgets(new BudgetTagFilter(Arrays.asList("tag1"), 1L), 5);
+        TargetAndActual targetAndActual = service.getWeekStatsForBudgets(new BudgetTagFilterModel(Arrays.asList("tag1")), 5);
 
         List<Money> targetSeries = targetAndActual.getTargetSeries().getValues();
         Assertions.assertEquals(5, targetSeries.size());
@@ -580,7 +580,7 @@ class StatisticsServiceTest extends ServiceTestTemplate {
         when(dateProvider.currentDate()).thenReturn(format.parse("29.01.2015"));
         when(workRecordRepository.aggregateByMonthAndPersonForBudgets(anyLong(), anyList(), any(Date.class))).thenReturn(createLast5MonthsForBudget());
         when(planRecordRepository.aggregateByMonthForBudgets(anyLong(), anyList(), any(Date.class))).thenReturn(createLast5Months());
-        TargetAndActual targetAndActual = service.getMonthStatsForBudgets(new BudgetTagFilter(Arrays.asList("tag1"), 1L), 5);
+        TargetAndActual targetAndActual = service.getMonthStatsForBudgets(new BudgetTagFilterModel(Arrays.asList("tag1")), 5);
 
         List<Money> targetSeries = targetAndActual.getTargetSeries().getValues();
         Assertions.assertEquals(5, targetSeries.size());

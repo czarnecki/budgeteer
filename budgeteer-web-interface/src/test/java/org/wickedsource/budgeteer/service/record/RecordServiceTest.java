@@ -2,17 +2,12 @@ package org.wickedsource.budgeteer.service.record;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.kubek2k.springockito.annotations.ReplaceWithMock;
-import org.kubek2k.springockito.annotations.SpringockitoContextLoader;
 import org.mockito.ArgumentMatchers;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.test.context.ContextConfiguration;
 import org.wickedsource.budgeteer.service.ServiceTestTemplate;
-import org.wickedsource.budgeteer.service.budget.BudgetTagFilter;
+import org.wickedsource.budgeteer.web.pages.budgets.models.BudgetTagFilterModel;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -65,7 +60,7 @@ class RecordServiceTest extends ServiceTestTemplate {
     void testGetWeeklyAggregationForBudgets() {
         List<AggregatedRecord> recordList = createAggregatedRecordList();
         when(recordJoiner.joinWeekly(ArgumentMatchers.anyList(), ArgumentMatchers.anyList())).thenReturn(recordList);
-        List<AggregatedRecord> resultList = service.getWeeklyAggregationForBudgets(new BudgetTagFilter(EMPTY_STRING_LIST, 1L));
+        List<AggregatedRecord> resultList = service.getWeeklyAggregationForBudgets(new BudgetTagFilterModel(EMPTY_STRING_LIST));
         Assertions.assertEquals(recordList, resultList);
     }
 
@@ -73,7 +68,7 @@ class RecordServiceTest extends ServiceTestTemplate {
     void testGetMonthlyAggregationForBudgets() {
         List<AggregatedRecord> recordList = createAggregatedRecordList();
         when(recordJoiner.joinMonthly(ArgumentMatchers.anyList(), ArgumentMatchers.anyList())).thenReturn(recordList);
-        List<AggregatedRecord> resultList = service.getMonthlyAggregationForBudgets(new BudgetTagFilter(EMPTY_STRING_LIST, 1L));
+        List<AggregatedRecord> resultList = service.getMonthlyAggregationForBudgets(new BudgetTagFilterModel(EMPTY_STRING_LIST));
         Assertions.assertEquals(recordList, resultList);
     }
 

@@ -1,23 +1,26 @@
 package org.wickedsource.budgeteer.web.pages.budgets.overview;
 
+import de.adesso.budgeteer.core.budget.port.in.GetBudgetTagsForProjectUseCase;
+import de.adesso.budgeteer.core.budget.port.in.GetBudgetsInProjectUseCase;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.markup.html.link.Link;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.wickedsource.budgeteer.service.budget.BudgetService;
-import org.wickedsource.budgeteer.service.budget.BudgetTagFilter;
 import org.wickedsource.budgeteer.web.BudgeteerSession;
 import org.wickedsource.budgeteer.web.Mount;
 import org.wickedsource.budgeteer.web.components.links.NetGrossLink;
 import org.wickedsource.budgeteer.web.pages.base.basepage.BasePage;
 import org.wickedsource.budgeteer.web.pages.base.basepage.breadcrumbs.BreadcrumbsModel;
-import org.wickedsource.budgeteer.web.pages.budgets.BudgetTagsModel;
 import org.wickedsource.budgeteer.web.pages.budgets.RemainingBudgetFilterModel;
 import org.wickedsource.budgeteer.web.pages.budgets.edit.EditBudgetPage;
+import org.wickedsource.budgeteer.web.pages.budgets.models.BudgetModelMapper;
+import org.wickedsource.budgeteer.web.pages.budgets.models.BudgetTagFilterModel;
 import org.wickedsource.budgeteer.web.pages.budgets.monthreport.multi.MultiBudgetMonthReportPage;
 import org.wickedsource.budgeteer.web.pages.budgets.overview.filter.BudgetRemainingFilterPanel;
 import org.wickedsource.budgeteer.web.pages.budgets.overview.filter.BudgetTagFilterPanel;
@@ -27,27 +30,31 @@ import org.wickedsource.budgeteer.web.pages.budgets.overview.table.FilteredBudge
 import org.wickedsource.budgeteer.web.pages.budgets.weekreport.multi.MultiBudgetWeekReportPage;
 import org.wickedsource.budgeteer.web.pages.dashboard.DashboardPage;
 
-import java.util.ArrayList;
-
-import static org.wicketstuff.lazymodel.LazyModel.from;
-import static org.wicketstuff.lazymodel.LazyModel.model;
-
 @Mount("budgets")
 public class BudgetsOverviewPage extends BasePage {
 
     @SpringBean
     private BudgetService budgetService;
 
+    @SpringBean
+    private GetBudgetsInProjectUseCase getBudgetsInProjectUseCase;
+
+    @SpringBean
+    private GetBudgetTagsForProjectUseCase getBudgetTagsForProjectUseCase;
+
+    @SpringBean
+    private BudgetModelMapper budgetModelMapper;
+
     public BudgetsOverviewPage() {
-        var tagsModel = new BudgetTagsModel(BudgeteerSession.get().getProjectId());
+        var tagsModel = Model.ofList(getBudgetTagsForProjectUseCase.getBudgetTagsForProject(BudgeteerSession.get().getProjectId()));
         if (BudgeteerSession.get().getBudgetFilter() == null) {
-            BudgetTagFilter filter = new BudgetTagFilter(new ArrayList<>(), BudgeteerSession.get().getProjectId());
+            var filter = new BudgetTagFilterModel(BudgeteerSession.get().getProjectId());
             BudgeteerSession.get().setBudgetFilter(filter);
         }
         add(new BudgetRemainingFilterPanel("remainingFilter", new RemainingBudgetFilterModel(BudgeteerSession.get().getProjectId())));
         add(new BudgetTagFilterPanel("tagFilter", tagsModel));
-        FilteredBudgetModel filteredBudgetModel = new FilteredBudgetModel(BudgeteerSession.get().getProjectId(), model(from(BudgeteerSession.get().getBudgetFilter())));
-        filteredBudgetModel.setRemainingFilterModel(model(from(BudgeteerSession.get().getRemainingBudgetFilterValue())));
+        var filteredBudgetModel = new FilteredBudgetModel(budgetModelMapper.toBudgetModel(getBudgetsInProjectUseCase.getBudgetsInProject(BudgeteerSession.get().getProjectId())), Model.of(BudgeteerSession.get().getBudgetFilter()));
+        filteredBudgetModel.setRemainingFilter(() -> BudgeteerSession.get().getRemainingBudgetFilterValue());
         add(new BudgetOverviewTable("budgetTable", filteredBudgetModel));
         add(new BookmarkablePageLink<MultiBudgetWeekReportPage>("weekReportLink", MultiBudgetWeekReportPage.class));
         add(new BookmarkablePageLink<MultiBudgetMonthReportPage>("monthReportLink", MultiBudgetMonthReportPage.class));
@@ -83,7 +90,6 @@ public class BudgetsOverviewPage extends BasePage {
         };
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     protected BreadcrumbsModel getBreadcrumbsModel() {
         return new BreadcrumbsModel(DashboardPage.class, BudgetsOverviewPage.class);

@@ -9,7 +9,7 @@ import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
-import org.wickedsource.budgeteer.service.budget.BudgetTagFilter;
+import org.wickedsource.budgeteer.web.pages.budgets.models.BudgetTagFilterModel;
 import org.wickedsource.budgeteer.web.BudgeteerSession;
 
 import java.util.List;
@@ -18,7 +18,7 @@ public class BudgetTagFilterPanel extends Panel {
 
     public BudgetTagFilterPanel(String id, IModel<List<String>> tagsModel) {
         super(id);
-        Form<BudgetTagFilter> form = new Form<BudgetTagFilter>("filterForm") {
+        Form<BudgetTagFilterModel> form = new Form<BudgetTagFilterModel>("filterForm") {
             @Override
             protected void onSubmit() {
                 send(getPage(), Broadcast.BREADTH, getFilter());
@@ -52,7 +52,7 @@ public class BudgetTagFilterPanel extends Panel {
     }
 
     @SuppressWarnings("unchecked")
-    private BudgetTagFilter getFilter() {
+    private BudgetTagFilterModel getFilter() {
        return BudgeteerSession.get().getBudgetFilter();
     }
 

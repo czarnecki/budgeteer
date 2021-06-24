@@ -7,7 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.wickedsource.budgeteer.MoneyUtil;
 import org.wickedsource.budgeteer.service.budget.BudgetDetailData;
 import org.wickedsource.budgeteer.service.budget.BudgetService;
-import org.wickedsource.budgeteer.service.budget.BudgetTagFilter;
+import org.wickedsource.budgeteer.web.pages.budgets.models.BudgetTagFilterModel;
 import org.wickedsource.budgeteer.web.AbstractWebTestTemplate;
 
 import java.util.ArrayList;
@@ -30,8 +30,8 @@ public class BudgetOverviewTableTest extends AbstractWebTestTemplate {
     @Test
     void render() {
         WicketTester tester = getTester();
-        when(service.loadBudgetsDetailData(anyLong(), any(BudgetTagFilter.class))).thenReturn(createTestData());
-        FilteredBudgetModel model = new FilteredBudgetModel(1, Model.of(new BudgetTagFilter(EMPTY_STRING_LIST, 1L)));
+        when(service.loadBudgetsDetailData(anyLong(), any(BudgetTagFilterModel.class))).thenReturn(createTestData());
+        FilteredBudgetModel model = new FilteredBudgetModel(1, Model.of(new BudgetTagFilterModel(EMPTY_STRING_LIST)));
         BudgetOverviewTable table = new BudgetOverviewTable("table", model, null);
         tester.startComponentInPage(table);
     }

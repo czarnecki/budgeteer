@@ -1,46 +1,49 @@
 package org.wickedsource.budgeteer.web.pages.budgets.overview.table;
 
-import org.apache.wicket.injection.Injector;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
-import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.wickedsource.budgeteer.service.budget.BudgetDetailData;
-import org.wickedsource.budgeteer.service.budget.BudgetService;
-import org.wickedsource.budgeteer.service.budget.BudgetTagFilter;
+import org.joda.money.Money;
+import org.wickedsource.budgeteer.web.pages.budgets.models.BudgetModel;
+import org.wickedsource.budgeteer.web.pages.budgets.models.BudgetTagFilterModel;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
-public class FilteredBudgetModel extends LoadableDetachableModel<List<BudgetDetailData>> {
+public class FilteredBudgetModel extends LoadableDetachableModel<List<BudgetModel>> {
 
-    @SpringBean
-    private BudgetService service;
+    private final List<BudgetModel> data;
+    private IModel<BudgetTagFilterModel> tagFilter;
+    private IModel<Long> remainingFilter = () -> 0L;
 
-    private long projectId;
+    public FilteredBudgetModel(List<BudgetModel> data, IModel<BudgetTagFilterModel> tagFilter) {
+        this.data = data;
+        this.tagFilter = tagFilter;
+    }
 
-    private IModel<BudgetTagFilter> filterModel;
+    public void setTagFilter(IModel<BudgetTagFilterModel> tagFilter) {
+        this.tagFilter = tagFilter;
+    }
 
-    private IModel<Long> remainingFilterModel = null;
-
-    public FilteredBudgetModel(long projectId, IModel<BudgetTagFilter> filterModel) {
-        Injector.get().inject(this);
-        this.filterModel = filterModel;
-        this.projectId = projectId;
+    public void setRemainingFilter(IModel<Long> remainingFilter) {
+        this.remainingFilter = remainingFilter;
     }
 
     @Override
-    protected List<BudgetDetailData> load() {
-        if(remainingFilterModel == null) {
-            return service.loadBudgetsDetailData(projectId, filterModel.getObject());
-        }else{
-            return service.loadBudgetsDetailData(projectId, filterModel.getObject(), remainingFilterModel.getObject());
+    protected List<BudgetModel> load() {
+        return data.stream()
+                .filter(this::filterTags)
+                .filter(this::filterRemaining)
+                .collect(Collectors.toList());
+    }
+
+    private boolean filterTags(BudgetModel budgetModel) {
+        if (tagFilter.getObject().isEmpty()) {
+            return true;
         }
+        return budgetModel.getTags().stream().anyMatch(tag -> tagFilter.getObject().isTagSelected(tag));
     }
 
-    public void setFilter(IModel<BudgetTagFilter> filterModel) {
-        this.filterModel = filterModel;
-    }
-
-    public void setRemainingFilterModel(IModel<Long> remainingFilterModel){
-        this.remainingFilterModel = remainingFilterModel;
+    private boolean filterRemaining(BudgetModel budgetModel) {
+        return remainingFilter.getObject() == 0 || budgetModel.getRemaining().isGreaterThan(Money.of(budgetModel.getRemaining().getCurrencyUnit(), remainingFilter.getObject()));
     }
 }

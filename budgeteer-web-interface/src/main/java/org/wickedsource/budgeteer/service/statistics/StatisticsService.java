@@ -9,7 +9,7 @@ import org.wickedsource.budgeteer.persistence.contract.ContractStatisticBean;
 import org.wickedsource.budgeteer.persistence.invoice.InvoiceRepository;
 import org.wickedsource.budgeteer.persistence.record.*;
 import org.wickedsource.budgeteer.service.DateUtil;
-import org.wickedsource.budgeteer.service.budget.BudgetTagFilter;
+import org.wickedsource.budgeteer.web.pages.budgets.models.BudgetTagFilterModel;
 import org.wickedsource.budgeteer.web.pages.contract.details.contractDetailChart.ContractDetailBudgetChart;
 
 import javax.transaction.Transactional;
@@ -529,7 +529,7 @@ public class StatisticsService {
      * @param numberOfWeeks the number of weeks to go back into the past.
      * @return the week statistics for the last numberOfWeeks weeks
      */
-    public TargetAndActual getWeekStatsForBudgets(BudgetTagFilter budgetFilter, int numberOfWeeks) {
+    public TargetAndActual getWeekStatsForBudgets(BudgetTagFilterModel budgetFilter, int numberOfWeeks) {
         Date startDate = dateUtil.weeksAgo(numberOfWeeks);
         List<WeeklyAggregatedRecordWithTitleBean> burnedStats = new ArrayList<WeeklyAggregatedRecordWithTitleBean>();
         List<WeeklyAggregatedRecordBean> plannedStats = new ArrayList<WeeklyAggregatedRecordBean>();
@@ -560,7 +560,7 @@ public class StatisticsService {
      * @param numberOfWeeks the number of weeks to go back into the past.
      * @return the week statistics for the last numberOfWeeks weeks
      */
-    public TargetAndActual getWeekStatsForBudgetsWithTax(BudgetTagFilter budgetFilter, int numberOfWeeks) {
+    public TargetAndActual getWeekStatsForBudgetsWithTax(BudgetTagFilterModel budgetFilter, int numberOfWeeks) {
         Date startDate = dateUtil.weeksAgo(numberOfWeeks);
         List<WeeklyAggregatedRecordWithTitleAndTaxBean> burnedStats = new ArrayList<WeeklyAggregatedRecordWithTitleAndTaxBean>();
         List<WeeklyAggregatedRecordWithTaxBean> plannedStats = new ArrayList<WeeklyAggregatedRecordWithTaxBean>();
@@ -589,7 +589,7 @@ public class StatisticsService {
      * @param numberOfMonths the number of months to go back into the past.
      * @return the month statistics for the last numberOfMonths months
      */
-    public TargetAndActual getMonthStatsForBudgets(BudgetTagFilter budgetFilter, int numberOfMonths) {
+    public TargetAndActual getMonthStatsForBudgets(BudgetTagFilterModel budgetFilter, int numberOfMonths) {
         Date startDate = dateUtil.monthsAgo(numberOfMonths);
         List<MonthlyAggregatedRecordWithTitleBean> burnedStats = new ArrayList<MonthlyAggregatedRecordWithTitleBean>();
         List<MonthlyAggregatedRecordBean> plannedStats = new ArrayList<MonthlyAggregatedRecordBean>();
@@ -622,7 +622,7 @@ public class StatisticsService {
      * @param numberOfMonths the number of months to go back into the past.
      * @return the month statistics for the last numberOfMonths months
      */
-    public TargetAndActual getMonthStatsForBudgetsWithTax(BudgetTagFilter budgetFilter, int numberOfMonths) { //multi month
+    public TargetAndActual getMonthStatsForBudgetsWithTax(BudgetTagFilterModel budgetFilter, int numberOfMonths) { //multi month
         Date startDate = dateUtil.monthsAgo(numberOfMonths);
         List<MonthlyAggregatedRecordWithTitleAndTaxBean> burnedStats = new ArrayList<MonthlyAggregatedRecordWithTitleAndTaxBean>();
         List<MonthlyAggregatedRecordWithTaxBean> plannedStats = new ArrayList<MonthlyAggregatedRecordWithTaxBean>();

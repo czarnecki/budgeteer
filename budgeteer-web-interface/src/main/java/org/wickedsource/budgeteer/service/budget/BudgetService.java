@@ -23,6 +23,7 @@ import org.wickedsource.budgeteer.web.components.listMultipleChoiceWithGroups.Op
 import org.wickedsource.budgeteer.web.pages.budgets.exception.InvalidBudgetImportKeyAndNameException;
 import org.wickedsource.budgeteer.web.pages.budgets.exception.InvalidBudgetImportKeyException;
 import org.wickedsource.budgeteer.web.pages.budgets.exception.InvalidBudgetNameException;
+import org.wickedsource.budgeteer.web.pages.budgets.models.BudgetTagFilterModel;
 
 import javax.transaction.Transactional;
 import java.math.BigDecimal;
@@ -82,7 +83,7 @@ public class BudgetService {
         return budgetBaseDataMapper.map(budget);
     }
 
-    private List<BudgetEntity> loadBudgetEntities(long projectId, BudgetTagFilter filter) {
+    private List<BudgetEntity> loadBudgetEntities(long projectId, BudgetTagFilterModel filter) {
         List<BudgetEntity> budgets;
         if (filter.getSelectedTags().isEmpty()) {
             budgets = budgetRepository.findByProjectIdOrderByNameAsc(projectId);
@@ -185,7 +186,7 @@ public class BudgetService {
      * @return list of budgets that match the filter.
      */
     @PreAuthorize("canReadProject(#projectId)")
-    public List<BudgetDetailData> loadBudgetsDetailData(long projectId, BudgetTagFilter filter) {
+    public List<BudgetDetailData> loadBudgetsDetailData(long projectId, BudgetTagFilterModel filter) {
         List<BudgetEntity> budgets = loadBudgetEntities(projectId, filter);
         List<BudgetDetailData> dataList = new ArrayList<BudgetDetailData>();
         for (BudgetEntity entity : budgets) {
@@ -203,7 +204,7 @@ public class BudgetService {
      * @param remainingFilter budgets with values above this will be included
      * @return list of budgets that match the filter.
      */
-    public List<BudgetDetailData> loadBudgetsDetailData(long projectId, BudgetTagFilter filter, Long remainingFilter) {
+    public List<BudgetDetailData> loadBudgetsDetailData(long projectId, BudgetTagFilterModel filter, Long remainingFilter) {
         List<BudgetDetailData> temp = loadBudgetsDetailData(projectId, filter);
         List<BudgetDetailData> result = new ArrayList<>();
         if (remainingFilter == 0) {

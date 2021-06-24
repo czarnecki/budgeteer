@@ -4,7 +4,7 @@ import org.apache.wicket.injection.Injector;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.wickedsource.budgeteer.service.budget.BudgetTagFilter;
+import org.wickedsource.budgeteer.web.pages.budgets.models.BudgetTagFilterModel;
 import org.wickedsource.budgeteer.service.record.AggregatedRecord;
 import org.wickedsource.budgeteer.service.record.RecordService;
 
@@ -17,14 +17,14 @@ public class BudgetsMonthlyAggregatedRecordsModel extends LoadableDetachableMode
 
     private long budgetId;
 
-    private IModel<BudgetTagFilter> filterModel;
+    private IModel<BudgetTagFilterModel> filterModel;
 
     public BudgetsMonthlyAggregatedRecordsModel(long budgetId) {
         Injector.get().inject(this);
         this.budgetId = budgetId;
     }
 
-    public BudgetsMonthlyAggregatedRecordsModel(IModel<BudgetTagFilter> filterModel) {
+    public BudgetsMonthlyAggregatedRecordsModel(IModel<BudgetTagFilterModel> filterModel) {
         Injector.get().inject(this);
         this.filterModel = filterModel;
     }

@@ -3,6 +3,9 @@ package org.wickedsource.budgeteer.web.pages.budgets.models;
 import de.adesso.budgeteer.core.budget.domain.Budget;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 @Component
 public class BudgetModelMapper {
     public BudgetModel toBudgetModel(Budget budget) {
@@ -26,6 +29,11 @@ public class BudgetModelMapper {
                 .limit(budget.getLimit())
                 .contractId(budget.getContractId())
                 .contractName(budget.getContractName())
+                .progress(budget.getProgress() * 100.0)
                 .build();
+    }
+
+    public List<BudgetModel> toBudgetModel(List<Budget> budgets) {
+        return budgets.stream().map(this::toBudgetModel).collect(Collectors.toList());
     }
 }

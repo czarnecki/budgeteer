@@ -5,7 +5,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.wickedsource.budgeteer.ListUtil;
 import org.wickedsource.budgeteer.persistence.record.*;
-import org.wickedsource.budgeteer.service.budget.BudgetTagFilter;
+import org.wickedsource.budgeteer.web.pages.budgets.models.BudgetTagFilterModel;
 import org.wickedsource.budgeteer.service.statistics.MonthlyStats;
 
 import javax.transaction.Transactional;
@@ -111,7 +111,7 @@ public class RecordService {
      * @return one record for each week from the current week to the first week that was booked in the given budget
      */
 
-    public List<AggregatedRecord> getWeeklyAggregationForBudgets(BudgetTagFilter budgetFilter) {
+    public List<AggregatedRecord> getWeeklyAggregationForBudgets(BudgetTagFilterModel budgetFilter) {
         List<WeeklyAggregatedRecordBean> planRecords;
         List<WeeklyAggregatedRecordBean> workRecords;
 
@@ -132,7 +132,7 @@ public class RecordService {
      * @param budgetFilter filter that identifies the set of budgets whose data to load
      * @return one record for each week from the current week to the first week that was booked in the given budget
      */
-    public List<AggregatedRecord> getWeeklyAggregationForBudgetsWithTaxes(BudgetTagFilter budgetFilter) {
+    public List<AggregatedRecord> getWeeklyAggregationForBudgetsWithTaxes(BudgetTagFilterModel budgetFilter) {
         List<WeeklyAggregatedRecordWithTaxBean> planRecords;
         List<WeeklyAggregatedRecordWithTitleAndTaxBean> workRecords;
 
@@ -154,7 +154,7 @@ public class RecordService {
      * @param budgetFilter filter that identifies the set of budgets whose data to load
      * @return one record for each month from the current month to the first month that was booked in the given budget.
      */
-    public List<AggregatedRecord> getMonthlyAggregationForBudgets(BudgetTagFilter budgetFilter) {
+    public List<AggregatedRecord> getMonthlyAggregationForBudgets(BudgetTagFilterModel budgetFilter) {
         List<MonthlyAggregatedRecordBean> planRecords;
         List<MonthlyAggregatedRecordBean> workRecords;
         if (budgetFilter.getSelectedTags().isEmpty()) {
@@ -173,7 +173,7 @@ public class RecordService {
      * @param budgetFilter filter that identifies the set of budgets whose data to load
      * @return one record for each month from the current month to the first month that was booked in the given budget.
      */
-    public List<AggregatedRecord> getMonthlyAggregationForBudgetsWithTax(BudgetTagFilter budgetFilter) {
+    public List<AggregatedRecord> getMonthlyAggregationForBudgetsWithTax(BudgetTagFilterModel budgetFilter) {
         List<MonthlyAggregatedRecordWithTaxBean> planRecords;
         List<MonthlyAggregatedRecordWithTaxBean> workRecords;
         if (budgetFilter.getSelectedTags().isEmpty()) {

@@ -17,7 +17,7 @@ import org.wickedsource.budgeteer.SheetTemplate.TemplateWriter;
 import org.wickedsource.budgeteer.persistence.record.WorkRecordRepository;
 import org.wickedsource.budgeteer.service.budget.BudgetDetailData;
 import org.wickedsource.budgeteer.service.budget.BudgetService;
-import org.wickedsource.budgeteer.service.budget.BudgetTagFilter;
+import org.wickedsource.budgeteer.web.pages.budgets.models.BudgetTagFilterModel;
 import org.wickedsource.budgeteer.service.template.TemplateService;
 import org.wickedsource.budgeteer.web.BudgeteerSession;
 
@@ -54,7 +54,7 @@ public class BudgetReportService {
      * @param metaInformationen Necessary informations about the report
      * @return Excel spreadsheet file
      */
-    public File createReportFile(long templateId, long projectId, BudgetTagFilter filter, ReportMetaInformation metaInformationen) {
+    public File createReportFile(long templateId, long projectId, BudgetTagFilterModel filter, ReportMetaInformation metaInformationen) {
         List<BudgetReportData> overallBudgetReportList = loadOverallBudgetReportData(projectId, filter,
                 metaInformationen);
         List<BudgetReportData> monthlyBudgetReportList = loadMonthlyBudgetReportData(projectId, filter,
@@ -130,7 +130,7 @@ public class BudgetReportService {
         return outputFile;
     }
 
-    public List<BudgetReportData> loadOverallBudgetReportData(long projectId, BudgetTagFilter filter,
+    public List<BudgetReportData> loadOverallBudgetReportData(long projectId, BudgetTagFilterModel filter,
                                                               ReportMetaInformation metaInformation) {
         List<BudgetDetailData> budgets = budgetService.loadBudgetsDetailData(projectId, filter);
         return budgets.stream()
@@ -138,7 +138,7 @@ public class BudgetReportService {
                 .collect(Collectors.toList());
     }
 
-    public List<BudgetReportData> loadMonthlyBudgetReportData(long projectId, BudgetTagFilter filter,
+    public List<BudgetReportData> loadMonthlyBudgetReportData(long projectId, BudgetTagFilterModel filter,
                                                               ReportMetaInformation metaInformation) {
         List<BudgetDetailData> budgets = budgetService.loadBudgetsDetailData(projectId, filter);
         return budgets.stream()
@@ -191,7 +191,7 @@ public class BudgetReportService {
     }
 
     public Date getStartDateOfBudgets() {
-        BudgetTagFilter filter = BudgeteerSession.get().getBudgetFilter();
+        BudgetTagFilterModel filter = BudgeteerSession.get().getBudgetFilter();
         List<BudgetDetailData> budgets = budgetService.loadBudgetsDetailData(BudgeteerSession.get().getProjectId(), filter);
         List<Long> budgetIds = budgets.stream().map(BudgetDetailData::getId).collect(Collectors.toList());
         return workRecordRepository.getFirstWorkRecordDateByBudgetIds(budgetIds);

@@ -16,6 +16,7 @@ import org.wickedsource.budgeteer.persistence.project.ProjectEntity;
 import org.wickedsource.budgeteer.persistence.record.PlanRecordRepository;
 import org.wickedsource.budgeteer.persistence.record.WorkRecordRepository;
 import org.wickedsource.budgeteer.service.ServiceTestTemplate;
+import org.wickedsource.budgeteer.web.pages.budgets.models.BudgetTagFilterModel;
 
 import java.util.*;
 
@@ -93,7 +94,7 @@ class BudgetServiceTest extends ServiceTestTemplate {
         when(workRecordRepository.getSpentBudget(1L)).thenReturn(100000.0);
         when(planRecordRepository.getPlannedBudget(1L)).thenReturn(200000.0);
         when(workRecordRepository.getAverageDailyRate(1L)).thenReturn(50000.0);
-        List<BudgetDetailData> data = budgetService.loadBudgetsDetailData(1L, new BudgetTagFilter(Arrays.asList("1", "2", "3"), 1L));
+        List<BudgetDetailData> data = budgetService.loadBudgetsDetailData(1L, new BudgetTagFilterModel(Arrays.asList("1", "2", "3")));
         Assertions.assertEquals(1, data.size());
         Assertions.assertEquals(100000.0d, data.get(0).getSpent().getAmountMinor().doubleValue(), 1d);
         Assertions.assertEquals(-100000.0d, data.get(0).getUnplanned().getAmountMinor().doubleValue(), 1d);

@@ -6,9 +6,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
-import org.wickedsource.budgeteer.service.budget.BudgetTagFilter;
+import org.wickedsource.budgeteer.web.pages.budgets.models.BudgetTagFilterModel;
 import org.wickedsource.budgeteer.service.security.BudgeteerAuthenticationToken;
-import org.wickedsource.budgeteer.service.user.User;
 import org.wickedsource.budgeteer.web.pages.project.administration.WebUser;
 import org.wickedsource.budgeteer.web.pages.templates.TemplateFilter;
 
@@ -20,7 +19,7 @@ public class BudgeteerSession extends WebSession {
 
     //Tags are saved in a Map and correspond to a projectID
     //This makes them persistent when switching projects
-    private HashMap<Long, BudgetTagFilter> budgetFilter = new HashMap<>();
+    private HashMap<Long, BudgetTagFilterModel> budgetFilter = new HashMap<>();
 
     private HashMap<Long, TemplateFilter> templateFilter = new HashMap<>();
 
@@ -87,11 +86,11 @@ public class BudgeteerSession extends WebSession {
         return (BudgeteerSession) WebSession.get();
     }
 
-    public BudgetTagFilter getBudgetFilter() {
+    public BudgetTagFilterModel getBudgetFilter() {
         return budgetFilter.get(getProjectId());
     }
 
-    public void setBudgetFilter(BudgetTagFilter budgetTagFilter) {
+    public void setBudgetFilter(BudgetTagFilterModel budgetTagFilter) {
         this.budgetFilter.put(projectId, budgetTagFilter);
     }
     public TemplateFilter getTemplateFilter() {
