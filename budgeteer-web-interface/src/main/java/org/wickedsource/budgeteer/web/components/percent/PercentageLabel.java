@@ -6,14 +6,15 @@ import org.apache.wicket.util.convert.IConverter;
 
 public class PercentageLabel extends Label {
 
-
     public PercentageLabel(String id, IModel<Double> model) {
         super(id, model);
     }
 
     @Override
-    @SuppressWarnings("unchecked")
-    public <Double> IConverter<Double> getConverter(Class<Double> type) {
-        return (IConverter<Double>) new PercentageConverter();
+    protected IConverter<?> createConverter(Class<?> type) {
+        if (Double.class.isAssignableFrom(type)) {
+            return new PercentageConverter();
+        }
+        return null;
     }
 }
