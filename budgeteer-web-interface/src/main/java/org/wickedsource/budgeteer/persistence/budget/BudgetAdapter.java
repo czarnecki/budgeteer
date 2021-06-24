@@ -12,7 +12,6 @@ import org.wickedsource.budgeteer.persistence.project.ProjectRepository;
 
 import javax.transaction.Transactional;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Component
@@ -27,7 +26,8 @@ public class BudgetAdapter implements
         BudgetHasImportKeyOrUniqueInProjectPort,
         BudgetHasNameOrUniqueInProjectPort,
         DeleteBudgetPort,
-        GetBudgetSummariesForProjectPort {
+        GetBudgetSummariesForProjectPort,
+        GetBudgetTagsForProjectPort {
 
     private final BudgetRepository budgetRepository;
     private final ProjectRepository projectRepository;
@@ -108,6 +108,11 @@ public class BudgetAdapter implements
     @Override
     public List<BudgetSummary> getBudgetSummariesForProject(long projectId, DateRange range) {
         return budgetMapper.mapToBudgetSummary(budgetRepository.findByProjectIdOrderByNameAsc(projectId), range);
+    }
+
+    @Override
+    public List<String> getBudgetTagsForProject(long projectId) {
+        return budgetRepository.getAllTagsInProject(projectId);
     }
 
     private List<BudgetTagEntity> mapToTagEntities(List<String> tags, BudgetEntity budgetEntity) {
