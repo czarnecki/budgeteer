@@ -27,7 +27,8 @@ public class BudgetAdapter implements
         BudgetHasNameOrUniqueInProjectPort,
         DeleteBudgetPort,
         GetBudgetSummariesForProjectPort,
-        GetBudgetTagsForProjectPort {
+        GetBudgetTagsForProjectPort,
+        GetBudgetsForContractPort {
 
     private final BudgetRepository budgetRepository;
     private final ProjectRepository projectRepository;
@@ -113,6 +114,11 @@ public class BudgetAdapter implements
     @Override
     public List<String> getBudgetTagsForProject(long projectId) {
         return budgetRepository.getAllTagsInProject(projectId);
+    }
+
+    @Override
+    public List<Budget> getBudgetsForContract(long contractId) {
+        return budgetMapper.mapToBudget(budgetRepository.findByContractId(contractId));
     }
 
     private List<BudgetTagEntity> mapToTagEntities(List<String> tags, BudgetEntity budgetEntity) {
