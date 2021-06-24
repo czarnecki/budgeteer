@@ -25,11 +25,35 @@ public class Budget {
     String contractName;
     BigDecimal taxRate;
 
-    public BigDecimal taxRateAsCoefficient() {
-        return BigDecimal.ONE.add(taxRate.divide(BigDecimal.valueOf(100), RoundingMode.HALF_DOWN));
+    public Money getTotalGross() {
+        return applyTax(total);
+    }
+
+    public Money getSpentGross() {
+        return applyTax(spent);
     }
 
     public Money getRemaining() {
         return total.minus(spent);
+    }
+
+    public Money getRemainingGross() {
+        return applyTax(getRemaining());
+    }
+
+    public Money getUnplannedGross() {
+        return applyTax(unplanned);
+    }
+
+    public BigDecimal taxRateAsCoefficient() {
+        return BigDecimal.ONE.add(taxRate.divide(BigDecimal.valueOf(100), RoundingMode.HALF_DOWN));
+    }
+
+    public double getProgress() {
+        return spent.getAmount().doubleValue() / total.getAmount().doubleValue();
+    }
+
+    private Money applyTax(Money money) {
+        return money.multipliedBy(taxRateAsCoefficient(), RoundingMode.HALF_DOWN);
     }
 }
