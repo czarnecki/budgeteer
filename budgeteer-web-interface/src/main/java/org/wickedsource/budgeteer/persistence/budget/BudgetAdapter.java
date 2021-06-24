@@ -28,7 +28,8 @@ public class BudgetAdapter implements
         DeleteBudgetPort,
         GetBudgetSummariesForProjectPort,
         GetBudgetTagsForProjectPort,
-        GetBudgetsForContractPort {
+        GetBudgetsForContractPort,
+        GetBudgetPort {
 
     private final BudgetRepository budgetRepository;
     private final ProjectRepository projectRepository;
@@ -119,6 +120,12 @@ public class BudgetAdapter implements
     @Override
     public List<Budget> getBudgetsForContract(long contractId) {
         return budgetMapper.mapToBudget(budgetRepository.findByContractId(contractId));
+    }
+
+    @Override
+    @Transactional
+    public Budget getBudget(long budgetId) {
+        return budgetRepository.findById(budgetId).map(budgetMapper::mapToBudget).orElseThrow();
     }
 
     private List<BudgetTagEntity> mapToTagEntities(List<String> tags, BudgetEntity budgetEntity) {
